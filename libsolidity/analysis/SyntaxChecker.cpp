@@ -226,6 +226,13 @@ bool SyntaxChecker::visit(FunctionDefinition const& _function)
 				"\"."
 			);
 	}
+	if (!_function.isImplemented() && !_function.modifiers().empty())
+	{
+		if (v050)
+			m_errorReporter.syntaxError(_function.location(), "Functions without implementation cannot have modifiers.");
+		else
+			m_errorReporter.warning( _function.location(), "Modifiers of functions without implementation are ignored." );
+	}
 	return true;
 }
 
