@@ -3,3 +3,5 @@ contract C {
         delete this.f;
     }
 }
+// ----
+// TypeError: Expression has to be an lvalue.

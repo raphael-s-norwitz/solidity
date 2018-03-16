@@ -12,3 +12,6 @@ contract C {
         delete g;
     }
 }
+// ----
+// Warning: Use of the "var" keyword is deprecated.
+// Warning: Use of the "var" keyword is deprecated.

@@ -3,3 +3,5 @@ contract C {
         return uint(this.f);
     }
 }
+// ----
+// TypeError: Explicit type conversion not allowed from "function () external returns (uint256)" to "uint256".
