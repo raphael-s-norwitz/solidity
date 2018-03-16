@@ -14,6 +14,7 @@ Bugfixes:
  * Code Generator: Implement packed encoding of external function types.
  * Commandline interface: Support ``--evm-version constantinople`` properly.
  * DocString Parser: Fix error message for empty descriptions.
+ * Parser: Fix parsing of getters for function type variables.
  * Standard JSON: Support ``constantinople`` as ``evmVersion`` properly.
  * Type System: Improve error message when attempting to shift by a fractional amount.
  * Type System: Make external library functions accessible.
