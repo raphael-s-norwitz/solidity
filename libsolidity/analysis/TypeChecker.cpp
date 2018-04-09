@@ -227,7 +227,7 @@ void TypeChecker::findDuplicateDefinitions(map<string, vector<T>> const& _defini
 		{
 			SecondarySourceLocation ssl;
 
-			for (size_t j = i + 1; j < overloads.size(); ++j)
+			for (size_t j = i + 1; j < overloads.size() && !reported.count(j); ++j)
 				if (FunctionType(*overloads[i]).hasEqualArgumentTypes(FunctionType(*overloads[j])))
 				{
 					ssl.append("Other declaration is here:", overloads[j]->location());
