@@ -32,10 +32,10 @@ REPO_ROOT=$(cd $(dirname "$0")/.. && pwd)
 echo $REPO_ROOT
 SOLC="$REPO_ROOT/build/solc/solc"
 
-FULLARGS="--optimize --ignore-missing --combined-json abi,asm,ast,bin,bin-runtime,clone-bin,compact-format,devdoc,hashes,interface,metadata,opcodes,srcmap,srcmap-runtime,userdoc"
+FULLARGS="--optimize --combined-json abi,asm,ast,bin,bin-runtime,clone-bin,compact-format,devdoc,hashes,interface,metadata,opcodes,srcmap,srcmap-runtime,userdoc"
 
 echo "Checking that the bug list is up to date..."
-"$REPO_ROOT"/scripts/update_bugs_by_version.py
+# "$REPO_ROOT"/scripts/update_bugs_by_version.py
 
 echo "Checking that StandardToken.sol, owned.sol and mortal.sol produce bytecode..."
 output=$("$REPO_ROOT"/build/solc/solc --bin "$REPO_ROOT"/std/*.sol 2>/dev/null | grep "ffff" | wc -l)
@@ -99,7 +99,7 @@ printTask "Testing unknown options..."
 )
 
 printTask "Compiling various other contracts and libraries..."
-(
+time (
 cd "$REPO_ROOT"/test/compilationTests/
 for dir in *
 do
@@ -114,16 +114,16 @@ done
 )
 
 printTask "Compiling all files in std and examples..."
-
+time (
 for f in "$REPO_ROOT"/std/*.sol
 do
     echo "$f"
     compileWithoutWarning "$f"
 done
-
+)
 printTask "Compiling all examples from the documentation..."
 TMPDIR=$(mktemp -d)
-(
+time (
     set -e
     cd "$REPO_ROOT"
     REPO_ROOT=$(pwd) # make it absolute
