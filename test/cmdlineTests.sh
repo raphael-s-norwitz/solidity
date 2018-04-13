@@ -32,7 +32,7 @@ REPO_ROOT=$(cd $(dirname "$0")/.. && pwd)
 echo $REPO_ROOT
 SOLC="$REPO_ROOT/build/solc/solc"
 
-FULLARGS="--optimize --combined-json abi,asm,ast,bin,bin-runtime,clone-bin,compact-format,devdoc,hashes,interface,metadata,opcodes,srcmap,srcmap-runtime,userdoc"
+FULLARGS="--optimize --ignore-missing --combined-json abi,asm,ast,bin,bin-runtime,clone-bin,compact-format,devdoc,hashes,interface,metadata,opcodes,srcmap,srcmap-runtime,userdoc"
 
 echo "Checking that the bug list is up to date..."
 # "$REPO_ROOT"/scripts/update_bugs_by_version.py
@@ -45,11 +45,105 @@ function printTask() { echo "$(tput bold)$(tput setaf 2)$1$(tput sgr0)"; }
 
 function printError() { echo "$(tput setaf 1)$1$(tput sgr0)"; }
 
+function Async_sub()
+{
+    local output failed
+    local f=$1
+    #echo "$f"    
+    set +e
+    output=$( ("$SOLC" $FULLARGS $f) 2>&1 )
+    failed=$?
+    set -e
+
+    if [ $failed -ne 0 ]
+    then
+        printError "Compilation failed on:"
+    	echo "$output"
+    	printError "While calling:"
+    	echo "\"$SOLC\" $FULLARGS $files"
+    	printError "Inside directory:"
+    	pwd
+    	false
+    fi
+}
+
+function compileAsync()
+{
+    for f in *.sol; do Async_sub "$f" & done; wait
+}
+
+#simply using dividend + remainder at the end
+#TODO: is there way to split it optimally NP-complete problem?
+#e.g. 10 in 2,2,3,3 instead of 2,2,2,4
+function compileSplitAsync()
+{
+    #TODO:timing is not accurate if includes wc process everytime
+    FILECOUNT=$(ls *.sol | wc -l)
+    if [ $FILECOUNT -eq 1 ]
+    then
+        compileFull *.sol */*.sol
+    else
+        local files=(*.sol)
+	#echo "$files"
+        local file_tmp=()
+	CPUCOUNT=$(grep -c ^processor /proc/cpuinfo)
+	let ct=$FILECOUNT/$CPUCOUNT
+	#NUMPER=$($FILECOUNT / $CPUCOUNT)
+	#echo "$FILECOUNT"
+	#echo "$CPUCOUNT"
+	#echo "$ct"
+	declare -i tmp
+	declare -i i
+	tmp=0
+	i=1
+	while [ $i -lt $CPUCOUNT ] 
+	do
+	    local subset=${files[@]:$tmp:$ct}
+	    #echo "$subset"
+	    file_tmp+=("$subset")
+	    tmp+=$ct
+	    i+=1	
+	done
+	#echo "tmp after"
+	#echo "$tmp"
+        local end=${files[@]:$tmp}
+	file_tmp+=("$end")
+        #echo "${file_tmp[1]}"
+	for f in $file_tmp; do Async_sub "$f" & done; wait 
+   fi
+}
+
+function compileFullIndividualFile()
+{
+    for f in *.sol
+    do
+        #echo "$f"
+	local output failed
+
+	set +e
+    	output=$( ("$SOLC" $FULLARGS $f) 2>&1 )
+    	failed=$?
+    	set -e
+
+    	if [ $failed -ne 0 ]
+   	then
+	    printError "Compilation failed on:"
+	    echo "$output"
+	    printError "While calling:"
+	    echo "\"$SOLC\" $FULLARGS $files"
+  	    printError "Inside directory:"
+	    pwd
+	    false
+        fi
+   done
+}
+
+
 function compileFull()
 {
     local files="$*"
     local output failed
-
+    #echo "$files"
     set +e
     output=$( ("$SOLC" $FULLARGS $files) 2>&1 )
     failed=$?
@@ -107,8 +201,11 @@ do
     then
         echo " - $dir"
         cd "$dir"
-        compileFull *.sol */*.sol
-        cd ..
+        #compileFull *.sol */*.sol
+        compileSplitAsync
+	#compileAsync
+	#compileFullIndividualFile
+	cd ..
     fi
 done
 )
