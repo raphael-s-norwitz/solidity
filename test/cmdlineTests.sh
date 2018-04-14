@@ -79,17 +79,29 @@ function compileSplitAsync()
 {
     #TODO:timing is not accurate if includes wc process everytime
     FILECOUNT=$(ls *.sol | wc -l)
-    if [ $FILECOUNT -eq 1 ]
+    CPUCOUNT=$(grep -c ^processor /proc/cpuinfo)
+    if [ $FILECOUNT -eq 1 ] || [ $CPUCOUNT -eq 1 ]
     then
-        compileFull *.sol */*.sol
+        #echo "test1"
+	compileFull *.sol */*.sol
     else
         local files=(*.sol)
 	#echo "$files"
+	#echo "test2"
         local file_tmp=()
-	CPUCOUNT=$(grep -c ^processor /proc/cpuinfo)
-	let ct=$FILECOUNT/$CPUCOUNT
-	#NUMPER=$($FILECOUNT / $CPUCOUNT)
+	#echo "$CPUCOUNT"
 	#echo "$FILECOUNT"
+	declare -i rem
+	if [ $FILECOUNT -lt $CPUCOUNT ]
+	then    
+	    let ct=1
+	    rem=0
+	else
+	    let ct=$FILECOUNT/$CPUCOUNT
+	    rem=$FILECOUNT%$CPUCOUNT
+	fi
+	#echo "$ct"
+	#NUMPER=$($FILECOUNT / $CPUCOUNT)
 	#echo "$CPUCOUNT"
 	#echo "$ct"
 	declare -i tmp
@@ -98,7 +110,17 @@ function compileSplitAsync()
 	i=1
 	while [ $i -lt $CPUCOUNT ] 
 	do
-	    local subset=${files[@]:$tmp:$ct}
+	    local subset
+	    if [ $rem -gt 0 ]
+	    then
+	    	#echo "test"
+		subset=${files[@]:$tmp:$ct+1}
+		#echo "test1"
+		rem=rem-1
+		tmp+=1
+	    else
+		subset=${files[@]:$tmp:$ct}
+	    fi
 	    #echo "$subset"
 	    file_tmp+=("$subset")
 	    tmp+=$ct
@@ -107,6 +129,7 @@ function compileSplitAsync()
 	#echo "tmp after"
 	#echo "$tmp"
         local end=${files[@]:$tmp}
+	#echo "$end"
 	file_tmp+=("$end")
         #echo "${file_tmp[1]}"
 	for f in $file_tmp; do Async_sub "$f" & done; wait 
