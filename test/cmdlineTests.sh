@@ -49,7 +49,6 @@ function Async_sub()
 {
     local output failed
     local f=$1
-    #echo "$f"    
     set +e
     output=$( ("$SOLC" $FULLARGS $f) 2>&1 )
     failed=$?
@@ -69,7 +68,7 @@ function Async_sub()
 
 function compileAsync()
 {
-    for f in *.sol; do Async_sub "$f" & done; wait
+    for f in "$*"; do Async_sub "$f" & done; wait
 }
 
 #simply using dividend + remainder at the end
@@ -78,14 +77,16 @@ function compileAsync()
 function compileSplitAsync()
 {
     #TODO:timing is not accurate if includes wc process everytime
-    FILECOUNT=$(ls *.sol | wc -l)
+    IFS=' ' read -r -a files <<< "$*"
+    echo "$files"
+    FILECOUNT=${#files[@]}
+    echo "$FILECOUNT"
     CPUCOUNT=$(grep -c ^processor /proc/cpuinfo)
     if [ $FILECOUNT -eq 1 ] || [ $CPUCOUNT -eq 1 ]
     then
         #echo "test1"
 	compileFull *.sol */*.sol
     else
-        local files=(*.sol)
 	#echo "$files"
 	#echo "test2"
         local file_tmp=()
@@ -138,7 +139,8 @@ function compileSplitAsync()
 
 function compileFullIndividualFile()
 {
-    for f in *.sol
+    local files=("$*")
+    for f in files
     do
         #echo "$f"
 	local output failed
@@ -225,9 +227,9 @@ do
         echo " - $dir"
         cd "$dir"
         #compileFull *.sol */*.sol
-        compileSplitAsync
-	#compileAsync
-	#compileFullIndividualFile
+        compileSplitAsync *.sol */*.sol
+	#compileAsync *.sol */*.sol
+	#compileFullIndividualFile *.sol */*.sol
 	cd ..
     fi
 done
