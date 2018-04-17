@@ -11,7 +11,7 @@ select_contracts_2.o:
 
 .PHONY: clean
 clean:
-	rm -f *~ *.o a.out core test
+	rm -f *~ *.o a.out core test multi_thread/* single_thread/*
 
 .PHONY: all
 all: clean test
