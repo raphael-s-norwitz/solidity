@@ -91,14 +91,14 @@ int f_test2(string compiler, string flags, string path) {
 /*
  *join_contracts selects N contracts which can compile together correctly
 */
-void join_contracts(string compiler, string select_flag,
+int join_contracts(string compiler, string select_flag,
 	string path, string &test_string, vector<string> &sol_files, int N) 
 {
 
   for (auto &p : std::experimental::filesystem::directory_iterator(path)) {
     cout << sol_files.size() << '\n';
     if(sol_files.size() == N)
-      break;
+      return N;
 
     string test_string_tmp = "";
     string temp = string(p.path().c_str());
@@ -116,6 +116,7 @@ void join_contracts(string compiler, string select_flag,
     }
 
   }
+  return sol_files.size();
 }
 
 
@@ -230,7 +231,10 @@ int main(int argc, char** argv)
   string test_string = "";
   vector <string> sol_files;
   
-  join_contracts(compiler, select_flag, path, test_string, sol_files, N);
+  if(join_contracts(compiler, select_flag, path, test_string, sol_files, N) != N){
+    cerr << "Not enough files in directory to satisfy N" << '\n';
+    return 0;
+  }
   
   cout << test_string << '\n';
   time_test(sol_files, test_string, compiler, flags1, remains, output_single, output_multi);
