@@ -27,6 +27,7 @@
 #include <libsolidity/parsing/Scanner.h>
 #include <libsolidity/inlineasm/AsmParser.h>
 #include <libsolidity/interface/ErrorReporter.h>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 
@@ -66,6 +67,7 @@ private:
 
 ASTPointer<SourceUnit> Parser::parse(shared_ptr<Scanner> const& _scanner)
 {
+	t_stack.push(string("Parser::parse ") + string("source: ") + *_scanner->sourceName());
 	try
 	{
 		m_recursionDepth = 0;
@@ -92,18 +94,21 @@ ASTPointer<SourceUnit> Parser::parse(shared_ptr<Scanner> const& _scanner)
 			}
 		}
 		solAssert(m_recursionDepth == 0, "");
+		t_stack.pop();
 		return nodeFactory.createNode<SourceUnit>(nodes);
 	}
 	catch (FatalError const&)
 	{
 		if (m_errorReporter.errors().empty())
 			throw; // Something is weird here, rather throw again.
+		t_stack.pop();
 		return nullptr;
 	}
 }
 
 ASTPointer<PragmaDirective> Parser::parsePragmaDirective()
 {
+	t_stack.push("Parser::parsePragmaDirective");
 	RecursionGuard recursionGuard(*this);
 	// pragma anything* ;
 	// Currently supported:
@@ -130,11 +135,13 @@ ASTPointer<PragmaDirective> Parser::parsePragmaDirective()
 	while (m_scanner->currentToken() != Token::Semicolon && m_scanner->currentToken() != Token::EOS);
 	nodeFactory.markEndPosition();
 	expectToken(Token::Semicolon);
+	t_stack.pop();
 	return nodeFactory.createNode<PragmaDirective>(tokens, literals);
 }
 
 ASTPointer<ImportDirective> Parser::parseImportDirective()
 {
+	t_stack.push("Parser::parseImportDirective");
 	RecursionGuard recursionGuard(*this);
 	// import "abc" [as x];
 	// import * as x from "abc";
@@ -194,28 +201,35 @@ ASTPointer<ImportDirective> Parser::parseImportDirective()
 	}
 	nodeFactory.markEndPosition();
 	expectToken(Token::Semicolon);
+	t_stack.pop();
 	return nodeFactory.createNode<ImportDirective>(path, unitAlias, move(symbolAliases));
 }
 
 ContractDefinition::ContractKind Parser::tokenToContractKind(Token::Value _token)
 {
+	t_stack.push("Parser::tokenToContractKind");
 	switch(_token)
 	{
 	case Token::Interface:
+		t_stack.pop();
 		return ContractDefinition::ContractKind::Interface;
 	case Token::Contract:
+		t_stack.pop();
 		return ContractDefinition::ContractKind::Contract;
 	case Token::Library:
+		t_stack.pop();
 		return ContractDefinition::ContractKind::Library;
 	default:
 		fatalParserError("Unsupported contract type.");
 	}
 	// FIXME: fatalParserError is not considered as throwing here
+	t_stack.pop();
 	return ContractDefinition::ContractKind::Contract;
 }
 
 ASTPointer<ContractDefinition> Parser::parseContractDefinition(Token::Value _expectedKind)
 {
+	t_stack.push("Parser::parseContractDefinition");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<ASTString> docString;
@@ -272,6 +286,7 @@ ASTPointer<ContractDefinition> Parser::parseContractDefinition(Token::Value _exp
 	}
 	nodeFactory.markEndPosition();
 	expectToken(Token::RBrace);
+	t_stack.pop();
 	return nodeFactory.createNode<ContractDefinition>(
 		name,
 		docString,
@@ -283,6 +298,7 @@ ASTPointer<ContractDefinition> Parser::parseContractDefinition(Token::Value _exp
 
 ASTPointer<InheritanceSpecifier> Parser::parseInheritanceSpecifier()
 {
+	t_stack.push("Parser::parseInheritanceSpecifier");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<UserDefinedTypeName> name(parseUserDefinedTypeName());
@@ -296,11 +312,13 @@ ASTPointer<InheritanceSpecifier> Parser::parseInheritanceSpecifier()
 	}
 	else
 		nodeFactory.setEndPositionFromNode(name);
+	t_stack.pop();
 	return nodeFactory.createNode<InheritanceSpecifier>(name, std::move(arguments));
 }
 
 Declaration::Visibility Parser::parseVisibilitySpecifier(Token::Value _token)
 {
+	t_stack.push("Parser::parseVisibilitySpecifier");
 	Declaration::Visibility visibility(Declaration::Visibility::Default);
 	if (_token == Token::Public)
 		visibility = Declaration::Visibility::Public;
@@ -313,11 +331,13 @@ Declaration::Visibility Parser::parseVisibilitySpecifier(Token::Value _token)
 	else
 		solAssert(false, "Invalid visibility specifier.");
 	m_scanner->next();
+	t_stack.pop();
 	return visibility;
 }
 
 StateMutability Parser::parseStateMutability(Token::Value _token)
 {
+	t_stack.push("Parser::parseStateMutability");
 	StateMutability stateMutability(StateMutability::NonPayable);
 	if (_token == Token::Payable)
 		stateMutability = StateMutability::Payable;
@@ -329,6 +349,7 @@ StateMutability Parser::parseStateMutability(Token::Value _token)
 	else
 		solAssert(false, "Invalid state mutability specifier.");
 	m_scanner->next();
+	t_stack.pop();
 	return stateMutability;
 }
 
@@ -338,6 +359,7 @@ Parser::FunctionHeaderParserResult Parser::parseFunctionHeader(
 	ASTString const* _contractName
 )
 {
+	t_stack.push("Parser::parseFunctionHeader");
 	RecursionGuard recursionGuard(*this);
 	FunctionHeaderParserResult result;
 
@@ -424,11 +446,13 @@ Parser::FunctionHeaderParserResult Parser::parseFunctionHeader(
 	}
 	else
 		result.returnParameters = createEmptyParameterList();
+	t_stack.pop();
 	return result;
 }
 
 ASTPointer<ASTNode> Parser::parseFunctionDefinitionOrFunctionTypeStateVariable(ASTString const* _contractName)
 {
+	t_stack.push("Parser::parseFunctionDefinitionOrFunctionTypeStateVariable");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<ASTString> docstring;
@@ -455,6 +479,7 @@ ASTPointer<ASTNode> Parser::parseFunctionDefinitionOrFunctionTypeStateVariable(A
 		}
 		else
 			m_scanner->next(); // just consume the ';'
+		t_stack.pop();
 		return nodeFactory.createNode<FunctionDefinition>(
 			header.name,
 			header.visibility,
@@ -482,12 +507,14 @@ ASTPointer<ASTNode> Parser::parseFunctionDefinitionOrFunctionTypeStateVariable(A
 		options.allowInitialValue = true;
 		auto node = parseVariableDeclaration(options, type);
 		expectToken(Token::Semicolon);
+		t_stack.pop();
 		return node;
 	}
 }
 
 ASTPointer<StructDefinition> Parser::parseStructDefinition()
 {
+	t_stack.push("Parser::parseStructDefinition");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::Struct);
@@ -501,19 +528,23 @@ ASTPointer<StructDefinition> Parser::parseStructDefinition()
 	}
 	nodeFactory.markEndPosition();
 	expectToken(Token::RBrace);
+	t_stack.pop();
 	return nodeFactory.createNode<StructDefinition>(name, members);
 }
 
 ASTPointer<EnumValue> Parser::parseEnumValue()
 {
+	t_stack.push("Parser::parseEnumValue");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	nodeFactory.markEndPosition();
+	t_stack.pop();
 	return nodeFactory.createNode<EnumValue>(expectIdentifierToken());
 }
 
 ASTPointer<EnumDefinition> Parser::parseEnumDefinition()
 {
+	t_stack.push("Parser::parseEnumDefinition");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::Enum);
@@ -535,6 +566,7 @@ ASTPointer<EnumDefinition> Parser::parseEnumDefinition()
 
 	nodeFactory.markEndPosition();
 	expectToken(Token::RBrace);
+	t_stack.pop();
 	return nodeFactory.createNode<EnumDefinition>(name, members);
 }
 
@@ -543,6 +575,7 @@ ASTPointer<VariableDeclaration> Parser::parseVariableDeclaration(
 	ASTPointer<TypeName> const& _lookAheadArrayType
 )
 {
+	t_stack.push("Parser::parseVariableDeclaration");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory = _lookAheadArrayType ?
 		ASTNodeFactory(*this, _lookAheadArrayType) : ASTNodeFactory(*this);
@@ -624,6 +657,7 @@ ASTPointer<VariableDeclaration> Parser::parseVariableDeclaration(
 			nodeFactory.setEndPositionFromNode(value);
 		}
 	}
+	t_stack.pop();
 	return nodeFactory.createNode<VariableDeclaration>(
 		type,
 		identifier,
@@ -638,6 +672,7 @@ ASTPointer<VariableDeclaration> Parser::parseVariableDeclaration(
 
 ASTPointer<ModifierDefinition> Parser::parseModifierDefinition()
 {
+	t_stack.push("Parser::parseModifierDefinition");
 	RecursionGuard recursionGuard(*this);
 	ScopeGuard resetModifierFlag([this]() { m_insideModifier = false; });
 	m_insideModifier = true;
@@ -661,11 +696,13 @@ ASTPointer<ModifierDefinition> Parser::parseModifierDefinition()
 		parameters = createEmptyParameterList();
 	ASTPointer<Block> block = parseBlock();
 	nodeFactory.setEndPositionFromNode(block);
+	t_stack.pop();
 	return nodeFactory.createNode<ModifierDefinition>(name, docstring, parameters, block);
 }
 
 ASTPointer<EventDefinition> Parser::parseEventDefinition()
 {
+	t_stack.push("Parser::parseEventDefinition");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<ASTString> docstring;
@@ -687,11 +724,13 @@ ASTPointer<EventDefinition> Parser::parseEventDefinition()
 	}
 	nodeFactory.markEndPosition();
 	expectToken(Token::Semicolon);
+	t_stack.pop();
 	return nodeFactory.createNode<EventDefinition>(name, docstring, parameters, anonymous);
 }
 
 ASTPointer<UsingForDirective> Parser::parseUsingDirective()
 {
+	t_stack.push("Parser::parseUsingDirective");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 
@@ -705,11 +744,13 @@ ASTPointer<UsingForDirective> Parser::parseUsingDirective()
 		typeName = parseTypeName(false);
 	nodeFactory.markEndPosition();
 	expectToken(Token::Semicolon);
+	t_stack.pop();
 	return nodeFactory.createNode<UsingForDirective>(library, typeName);
 }
 
 ASTPointer<ModifierInvocation> Parser::parseModifierInvocation()
 {
+	t_stack.push("Parser::parseModifierInvocation");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<Identifier> name(parseIdentifier());
@@ -723,19 +764,23 @@ ASTPointer<ModifierInvocation> Parser::parseModifierInvocation()
 	}
 	else
 		nodeFactory.setEndPositionFromNode(name);
+	t_stack.pop();
 	return nodeFactory.createNode<ModifierInvocation>(name, move(arguments));
 }
 
 ASTPointer<Identifier> Parser::parseIdentifier()
 {
+	t_stack.push("Parser::parseIdentifier");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	nodeFactory.markEndPosition();
+	t_stack.pop();
 	return nodeFactory.createNode<Identifier>(expectIdentifierToken());
 }
 
 ASTPointer<UserDefinedTypeName> Parser::parseUserDefinedTypeName()
 {
+	t_stack.push("Parser::parseUserDefinedTypeName");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	nodeFactory.markEndPosition();
@@ -746,11 +791,13 @@ ASTPointer<UserDefinedTypeName> Parser::parseUserDefinedTypeName()
 		nodeFactory.markEndPosition();
 		identifierPath.push_back(*expectIdentifierToken());
 	}
+	t_stack.pop();
 	return nodeFactory.createNode<UserDefinedTypeName>(identifierPath);
 }
 
 ASTPointer<TypeName> Parser::parseTypeNameSuffix(ASTPointer<TypeName> type, ASTNodeFactory& nodeFactory)
 {
+	t_stack.push("Parser::parseTypeNameSuffix");
 	RecursionGuard recursionGuard(*this);
 	while (m_scanner->currentToken() == Token::LBrack)
 	{
@@ -762,11 +809,13 @@ ASTPointer<TypeName> Parser::parseTypeNameSuffix(ASTPointer<TypeName> type, ASTN
 		expectToken(Token::RBrack);
 		type = nodeFactory.createNode<ArrayTypeName>(type, length);
 	}
+	t_stack.pop();
 	return type;
 }
 
 ASTPointer<TypeName> Parser::parseTypeName(bool _allowVar)
 {
+	t_stack.push("Parser::parseTypeName");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<TypeName> type;
@@ -798,15 +847,18 @@ ASTPointer<TypeName> Parser::parseTypeName(bool _allowVar)
 	if (type)
 		// Parse "[...]" postfixes for arrays.
 		type = parseTypeNameSuffix(type, nodeFactory);
+	t_stack.pop();
 	return type;
 }
 
 ASTPointer<FunctionTypeName> Parser::parseFunctionType()
 {
+	t_stack.push("Parser::parseFunctionType");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	FunctionHeaderParserResult header = parseFunctionHeader(true, false);
 	solAssert(!header.isConstructor, "Tried to parse type as constructor.");
+	t_stack.pop();
 	return nodeFactory.createNode<FunctionTypeName>(
 		header.parameters,
 		header.returnParameters,
@@ -817,6 +869,7 @@ ASTPointer<FunctionTypeName> Parser::parseFunctionType()
 
 ASTPointer<Mapping> Parser::parseMapping()
 {
+	t_stack.push("Parser::parseMapping");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::Mapping);
@@ -836,6 +889,7 @@ ASTPointer<Mapping> Parser::parseMapping()
 	ASTPointer<TypeName> valueType = parseTypeName(allowVar);
 	nodeFactory.markEndPosition();
 	expectToken(Token::RParen);
+	t_stack.pop();
 	return nodeFactory.createNode<Mapping>(keyType, valueType);
 }
 
@@ -844,6 +898,7 @@ ASTPointer<ParameterList> Parser::parseParameterList(
 	bool _allowEmpty
 )
 {
+	t_stack.push("Parser::parseParameterList");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	vector<ASTPointer<VariableDeclaration>> parameters;
@@ -863,11 +918,13 @@ ASTPointer<ParameterList> Parser::parseParameterList(
 	}
 	nodeFactory.markEndPosition();
 	m_scanner->next();
+	t_stack.pop();
 	return nodeFactory.createNode<ParameterList>(parameters);
 }
 
 ASTPointer<Block> Parser::parseBlock(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseBlock");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::LBrace);
@@ -876,11 +933,13 @@ ASTPointer<Block> Parser::parseBlock(ASTPointer<ASTString> const& _docString)
 		statements.push_back(parseStatement());
 	nodeFactory.markEndPosition();
 	expectToken(Token::RBrace);
+	t_stack.pop();
 	return nodeFactory.createNode<Block>(_docString, statements);
 }
 
 ASTPointer<Statement> Parser::parseStatement()
 {
+	t_stack.push("Parser::parseStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTPointer<ASTString> docString;
 	if (m_scanner->currentCommentLiteral() != "")
@@ -889,14 +948,19 @@ ASTPointer<Statement> Parser::parseStatement()
 	switch (m_scanner->currentToken())
 	{
 	case Token::If:
+		t_stack.pop();
 		return parseIfStatement(docString);
 	case Token::While:
+		t_stack.pop();
 		return parseWhileStatement(docString);
 	case Token::Do:
+		t_stack.pop();
 		return parseDoWhileStatement(docString);
 	case Token::For:
+		t_stack.pop();
 		return parseForStatement(docString);
 	case Token::LBrace:
+		t_stack.pop();
 		return parseBlock(docString);
 		// starting from here, all statements must be terminated by a semicolon
 	case Token::Continue:
@@ -926,6 +990,7 @@ ASTPointer<Statement> Parser::parseStatement()
 		break;
 	}
 	case Token::Assembly:
+		t_stack.pop();
 		return parseInlineAssembly(docString);
 	case Token::Identifier:
 		if (m_scanner->currentLiteral() == "emit")
@@ -943,11 +1008,13 @@ ASTPointer<Statement> Parser::parseStatement()
 		break;
 	}
 	expectToken(Token::Semicolon);
+	t_stack.pop();
 	return statement;
 }
 
 ASTPointer<InlineAssembly> Parser::parseInlineAssembly(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseInlineAssembly");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::Assembly);
@@ -961,11 +1028,13 @@ ASTPointer<InlineAssembly> Parser::parseInlineAssembly(ASTPointer<ASTString> con
 	assembly::Parser asmParser(m_errorReporter);
 	shared_ptr<assembly::Block> block = asmParser.parse(m_scanner, true);
 	nodeFactory.markEndPosition();
+	t_stack.pop();
 	return nodeFactory.createNode<InlineAssembly>(_docString, block);
 }
 
 ASTPointer<IfStatement> Parser::parseIfStatement(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseIfStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::If);
@@ -982,11 +1051,13 @@ ASTPointer<IfStatement> Parser::parseIfStatement(ASTPointer<ASTString> const& _d
 	}
 	else
 		nodeFactory.setEndPositionFromNode(trueBody);
+	t_stack.pop();
 	return nodeFactory.createNode<IfStatement>(_docString, condition, trueBody, falseBody);
 }
 
 ASTPointer<WhileStatement> Parser::parseWhileStatement(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseWhileStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::While);
@@ -995,11 +1066,13 @@ ASTPointer<WhileStatement> Parser::parseWhileStatement(ASTPointer<ASTString> con
 	expectToken(Token::RParen);
 	ASTPointer<Statement> body = parseStatement();
 	nodeFactory.setEndPositionFromNode(body);
+	t_stack.pop();
 	return nodeFactory.createNode<WhileStatement>(_docString, condition, body, false);
 }
 
 ASTPointer<WhileStatement> Parser::parseDoWhileStatement(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseDoWhileStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	expectToken(Token::Do);
@@ -1010,12 +1083,14 @@ ASTPointer<WhileStatement> Parser::parseDoWhileStatement(ASTPointer<ASTString> c
 	expectToken(Token::RParen);
 	nodeFactory.markEndPosition();
 	expectToken(Token::Semicolon);
+	t_stack.pop();
 	return nodeFactory.createNode<WhileStatement>(_docString, condition, body, true);
 }
 
 
 ASTPointer<ForStatement> Parser::parseForStatement(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseForStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	ASTPointer<Statement> initExpression;
@@ -1039,6 +1114,7 @@ ASTPointer<ForStatement> Parser::parseForStatement(ASTPointer<ASTString> const& 
 
 	ASTPointer<Statement> body = parseStatement();
 	nodeFactory.setEndPositionFromNode(body);
+	t_stack.pop();
 	return nodeFactory.createNode<ForStatement>(
 		_docString,
 		initExpression,
@@ -1050,6 +1126,7 @@ ASTPointer<ForStatement> Parser::parseForStatement(ASTPointer<ASTString> const& 
 
 ASTPointer<EmitStatement> Parser::parseEmitStatement(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseEmitStatement");
 	ASTNodeFactory nodeFactory(*this);
 	m_scanner->next();
 	ASTNodeFactory eventCallNodeFactory(*this);
@@ -1077,11 +1154,13 @@ ASTPointer<EmitStatement> Parser::parseEmitStatement(ASTPointer<ASTString> const
 	expectToken(Token::RParen);
 	auto eventCall = eventCallNodeFactory.createNode<FunctionCall>(eventName, arguments, names);
 	auto statement = nodeFactory.createNode<EmitStatement>(_docString, eventCall);
+	t_stack.pop();
 	return statement;
 }
 
 ASTPointer<Statement> Parser::parseSimpleStatement(ASTPointer<ASTString> const& _docString)
 {
+	t_stack.push("Parser::parseSimpleStatement");
 	RecursionGuard recursionGuard(*this);
 	// These two cases are very hard to distinguish:
 	// x[7 * 20 + 3] a;  -  x[7 * 20 + 3] = 9;
@@ -1092,8 +1171,10 @@ ASTPointer<Statement> Parser::parseSimpleStatement(ASTPointer<ASTString> const& 
 	switch (peekStatementType())
 	{
 	case LookAheadInfo::VariableDeclarationStatement:
+		t_stack.pop();
 		return parseVariableDeclarationStatement(_docString);
 	case LookAheadInfo::ExpressionStatement:
+		t_stack.pop();
 		return parseExpressionStatement(_docString);
 	default:
 		break;
@@ -1133,7 +1214,7 @@ ASTPointer<Statement> Parser::parseSimpleStatement(ASTPointer<ASTString> const& 
 		indices.push_back(make_pair(index, indexLocation));
 		expectToken(Token::RBrack);
 	}
-
+	t_stack.pop();
 	if (m_scanner->currentToken() == Token::Identifier || Token::isLocationSpecifier(m_scanner->currentToken()))
 		return parseVariableDeclarationStatement(_docString, typeNameIndexAccessStructure(path, indices));
 	else
@@ -1145,6 +1226,7 @@ ASTPointer<VariableDeclarationStatement> Parser::parseVariableDeclarationStateme
 	ASTPointer<TypeName> const& _lookAheadArrayType
 )
 {
+	t_stack.push("Parser::parseVariableDeclarationStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	if (_lookAheadArrayType)
@@ -1202,6 +1284,7 @@ ASTPointer<VariableDeclarationStatement> Parser::parseVariableDeclarationStateme
 		value = parseExpression();
 		nodeFactory.setEndPositionFromNode(value);
 	}
+	t_stack.pop();
 	return nodeFactory.createNode<VariableDeclarationStatement>(_docString, variables, value);
 }
 
@@ -1210,8 +1293,10 @@ ASTPointer<ExpressionStatement> Parser::parseExpressionStatement(
 	ASTPointer<Expression> const& _lookAheadIndexAccessStructure
 )
 {
+	t_stack.push("Parser::parseExpressionStatement");
 	RecursionGuard recursionGuard(*this);
 	ASTPointer<Expression> expression = parseExpression(_lookAheadIndexAccessStructure);
+	t_stack.pop();
 	return ASTNodeFactory(*this, expression).createNode<ExpressionStatement>(_docString, expression);
 }
 
@@ -1219,6 +1304,7 @@ ASTPointer<Expression> Parser::parseExpression(
 	ASTPointer<Expression> const& _lookAheadIndexAccessStructure
 )
 {
+	t_stack.push("Parser::parseExpression");
 	RecursionGuard recursionGuard(*this);
 	ASTPointer<Expression> expression = parseBinaryExpression(4, _lookAheadIndexAccessStructure);
 	if (Token::isAssignmentOp(m_scanner->currentToken()))
@@ -1227,6 +1313,7 @@ ASTPointer<Expression> Parser::parseExpression(
 		ASTPointer<Expression> rightHandSide = parseExpression();
 		ASTNodeFactory nodeFactory(*this, expression);
 		nodeFactory.setEndPositionFromNode(rightHandSide);
+		t_stack.pop();
 		return nodeFactory.createNode<Assignment>(expression, assignmentOperator, rightHandSide);
 	}
 	else if (m_scanner->currentToken() == Token::Value::Conditional)
@@ -1237,10 +1324,14 @@ ASTPointer<Expression> Parser::parseExpression(
 		ASTPointer<Expression> falseExpression = parseExpression();
 		ASTNodeFactory nodeFactory(*this, expression);
 		nodeFactory.setEndPositionFromNode(falseExpression);
+		t_stack.pop();
 		return nodeFactory.createNode<Conditional>(expression, trueExpression, falseExpression);
 	}
 	else
+	{
+		t_stack.pop();
 		return expression;
+	}
 }
 
 ASTPointer<Expression> Parser::parseBinaryExpression(
@@ -1248,6 +1339,7 @@ ASTPointer<Expression> Parser::parseBinaryExpression(
 	ASTPointer<Expression> const& _lookAheadIndexAccessStructure
 )
 {
+	t_stack.push("Parser::parseBinaryExpression");
 	RecursionGuard recursionGuard(*this);
 	ASTPointer<Expression> expression = parseUnaryExpression(_lookAheadIndexAccessStructure);
 	ASTNodeFactory nodeFactory(*this, expression);
@@ -1261,6 +1353,7 @@ ASTPointer<Expression> Parser::parseBinaryExpression(
 			nodeFactory.setEndPositionFromNode(right);
 			expression = nodeFactory.createNode<BinaryOperation>(expression, op, right);
 		}
+	t_stack.pop();
 	return expression;
 }
 
@@ -1268,6 +1361,7 @@ ASTPointer<Expression> Parser::parseUnaryExpression(
 	ASTPointer<Expression> const& _lookAheadIndexAccessStructure
 )
 {
+	t_stack.push("Parser::parseUnaryExpression");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory = _lookAheadIndexAccessStructure ?
 		ASTNodeFactory(*this, _lookAheadIndexAccessStructure) : ASTNodeFactory(*this);
@@ -1278,6 +1372,7 @@ ASTPointer<Expression> Parser::parseUnaryExpression(
 		m_scanner->next();
 		ASTPointer<Expression> subExpression = parseUnaryExpression();
 		nodeFactory.setEndPositionFromNode(subExpression);
+		t_stack.pop();
 		return nodeFactory.createNode<UnaryOperation>(token, subExpression, true);
 	}
 	else
@@ -1286,9 +1381,13 @@ ASTPointer<Expression> Parser::parseUnaryExpression(
 		ASTPointer<Expression> subExpression = parseLeftHandSideExpression(_lookAheadIndexAccessStructure);
 		token = m_scanner->currentToken();
 		if (!Token::isCountOp(token))
+		{
+			t_stack.pop();
 			return subExpression;
+		}
 		nodeFactory.markEndPosition();
 		m_scanner->next();
+		t_stack.pop();
 		return nodeFactory.createNode<UnaryOperation>(token, subExpression, false);
 	}
 }
@@ -1297,6 +1396,7 @@ ASTPointer<Expression> Parser::parseLeftHandSideExpression(
 	ASTPointer<Expression> const& _lookAheadIndexAccessStructure
 )
 {
+	t_stack.push("Parser::parseLeftHandSideExpression");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory = _lookAheadIndexAccessStructure ?
 		ASTNodeFactory(*this, _lookAheadIndexAccessStructure) : ASTNodeFactory(*this);
@@ -1351,6 +1451,7 @@ ASTPointer<Expression> Parser::parseLeftHandSideExpression(
 			break;
 		}
 		default:
+			t_stack.pop();
 			return expression;
 		}
 	}
@@ -1358,6 +1459,7 @@ ASTPointer<Expression> Parser::parseLeftHandSideExpression(
 
 ASTPointer<Expression> Parser::parsePrimaryExpression()
 {
+	t_stack.push("Parser::parsePrimaryExpression");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	Token::Value token = m_scanner->currentToken();
@@ -1447,11 +1549,13 @@ ASTPointer<Expression> Parser::parsePrimaryExpression()
 			fatalParserError(string("Expected primary expression."));
 		break;
 	}
+	t_stack.pop();
 	return expression;
 }
 
 vector<ASTPointer<Expression>> Parser::parseFunctionCallListArguments()
 {
+	t_stack.push("Parser::parseFunctionCallListArguments");
 	RecursionGuard recursionGuard(*this);
 	vector<ASTPointer<Expression>> arguments;
 	if (m_scanner->currentToken() != Token::RParen)
@@ -1463,11 +1567,13 @@ vector<ASTPointer<Expression>> Parser::parseFunctionCallListArguments()
 			arguments.push_back(parseExpression());
 		}
 	}
+	t_stack.pop();
 	return arguments;
 }
 
 pair<vector<ASTPointer<Expression>>, vector<ASTPointer<ASTString>>> Parser::parseFunctionCallArguments()
 {
+	t_stack.push("Parser::parseFunctionCallArguments");
 	RecursionGuard recursionGuard(*this);
 	pair<vector<ASTPointer<Expression>>, vector<ASTPointer<ASTString>>> ret;
 	Token::Value token = m_scanner->currentToken();
@@ -1501,6 +1607,7 @@ pair<vector<ASTPointer<Expression>>, vector<ASTPointer<ASTString>>> Parser::pars
 	}
 	else
 		ret.first = parseFunctionCallListArguments();
+	t_stack.pop();
 	return ret;
 }
 
@@ -1513,19 +1620,30 @@ Parser::LookAheadInfo Parser::peekStatementType() const
 	// a variable declaration.
 	// If we get an identifier followed by a "[" or ".", it can be both ("lib.type[9] a;" or "variable.el[9] = 7;").
 	// In all other cases, we have an expression statement.
+	t_stack.push("Parser::peekStatementType");
 	Token::Value token(m_scanner->currentToken());
 	bool mightBeTypeName = (Token::isElementaryTypeName(token) || token == Token::Identifier);
 
 	if (token == Token::Mapping || token == Token::Function || token == Token::Var)
+	{
+		t_stack.pop();
 		return LookAheadInfo::VariableDeclarationStatement;
+	}
 	if (mightBeTypeName)
 	{
 		Token::Value next = m_scanner->peekNextToken();
 		if (next == Token::Identifier || Token::isLocationSpecifier(next))
+		{
+			t_stack.pop();
 			return LookAheadInfo::VariableDeclarationStatement;
+		}
 		if (next == Token::LBrack || next == Token::Period)
+		{
+			t_stack.pop();
 			return LookAheadInfo::IndexAccessStructure;
+		}
 	}
+	t_stack.pop();
 	return LookAheadInfo::ExpressionStatement;
 }
 
@@ -1535,6 +1653,7 @@ ASTPointer<TypeName> Parser::typeNameIndexAccessStructure(
 )
 {
 	solAssert(!_path.empty(), "");
+	t_stack.push("Parser::typeNameIndexAccessStructure");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	SourceLocation location = _path.front()->location();
@@ -1559,6 +1678,7 @@ ASTPointer<TypeName> Parser::typeNameIndexAccessStructure(
 		nodeFactory.setLocation(lengthExpression.second);
 		type = nodeFactory.createNode<ArrayTypeName>(type, lengthExpression.first);
 	}
+	t_stack.pop();
 	return type;
 }
 
@@ -1568,6 +1688,7 @@ ASTPointer<Expression> Parser::expressionFromIndexAccessStructure(
 )
 {
 	solAssert(!_path.empty(), "");
+	t_stack.push("Parser::expressionFromIndexAccessStructure");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this, _path.front());
 	ASTPointer<Expression> expression(_path.front());
@@ -1587,31 +1708,40 @@ ASTPointer<Expression> Parser::expressionFromIndexAccessStructure(
 		nodeFactory.setLocation(index.second);
 		expression = nodeFactory.createNode<IndexAccess>(expression, index.first);
 	}
+	t_stack.pop();
 	return expression;
 }
 
 ASTPointer<ParameterList> Parser::createEmptyParameterList()
 {
+	t_stack.push("Parser::createEmptyParameterList");
 	RecursionGuard recursionGuard(*this);
 	ASTNodeFactory nodeFactory(*this);
 	nodeFactory.setLocationEmpty();
+	t_stack.pop();
 	return nodeFactory.createNode<ParameterList>(vector<ASTPointer<VariableDeclaration>>());
 }
 
 string Parser::currentTokenName()
 {
+	t_stack.push("Parser::currentTokenName");
 	Token::Value token = m_scanner->currentToken();
 	if (Token::isElementaryTypeName(token)) //for the sake of accuracy in reporting
 	{
 		ElementaryTypeNameToken elemTypeName = m_scanner->currentElementaryTypeNameToken();
+		t_stack.pop();
 		return elemTypeName.toString();
 	}
 	else
+	{
+		t_stack.pop();
 		return Token::name(token);
+	}
 }
 
 Token::Value Parser::expectAssignmentOperator()
 {
+	t_stack.push("Parser::expectAssignmentOperator");
 	Token::Value op = m_scanner->currentToken();
 	if (!Token::isAssignmentOp(op))
 		fatalParserError(
@@ -1620,11 +1750,13 @@ Token::Value Parser::expectAssignmentOperator()
 			string("'")
 		);
 	m_scanner->next();
+	t_stack.pop();
 	return op;
 }
 
 ASTPointer<ASTString> Parser::expectIdentifierToken()
 {
+	t_stack.push("Parser::expectIdentifierToken");
 	Token::Value id = m_scanner->currentToken();
 	if (id != Token::Identifier)
 		fatalParserError(
@@ -1632,13 +1764,16 @@ ASTPointer<ASTString> Parser::expectIdentifierToken()
 			currentTokenName() +
 			string("'")
 		);
+	t_stack.pop();
 	return getLiteralAndAdvance();
 }
 
 ASTPointer<ASTString> Parser::getLiteralAndAdvance()
 {
+	t_stack.push("Parser::getLiteralAndAdvance");
 	ASTPointer<ASTString> identifier = make_shared<ASTString>(m_scanner->currentLiteral());
 	m_scanner->next();
+	t_stack.pop();
 	return identifier;
 }
 
