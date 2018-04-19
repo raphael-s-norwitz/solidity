@@ -30,6 +30,7 @@
 #include <libsolidity/formal/VariableUsage.h>
 
 #include <libsolidity/interface/ErrorReporter.h>
+#include <libsolidity/interface/FTime.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -53,9 +54,11 @@ SMTChecker::SMTChecker(ErrorReporter& _errorReporter, ReadCallback::Callback con
 
 void SMTChecker::analyze(SourceUnit const& _source)
 {
+	t_stack.push("SMTChecker::analyze");
 	m_variableUsage = make_shared<VariableUsage>(_source);
 	if (_source.annotation().experimentalFeatures.count(ExperimentalFeature::SMTChecker))
 		_source.accept(*this);
+	t_stack.pop();
 }
 
 void SMTChecker::endVisit(VariableDeclaration const& _varDecl)
