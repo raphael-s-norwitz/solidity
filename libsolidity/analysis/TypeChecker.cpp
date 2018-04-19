@@ -29,6 +29,7 @@
 #include <libsolidity/inlineasm/AsmAnalysisInfo.h>
 #include <libsolidity/inlineasm/AsmData.h>
 #include <libsolidity/interface/ErrorReporter.h>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 using namespace dev;
@@ -60,7 +61,9 @@ bool typeSupportedByOldABIEncoder(Type const& _type)
 
 bool TypeChecker::checkTypeRequirements(ASTNode const& _contract)
 {
+	t_stack.push("TypeChecker::checkTypeRequirements");
 	_contract.accept(*this);
+	t_stack.pop();
 	return Error::containsOnlyWarnings(m_errorReporter.errors());
 }
 

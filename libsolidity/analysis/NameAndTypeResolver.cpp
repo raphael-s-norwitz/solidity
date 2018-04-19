@@ -26,6 +26,7 @@
 #include <libsolidity/analysis/TypeChecker.h>
 #include <libsolidity/interface/ErrorReporter.h>
 #include <libdevcore/StringUtils.h>
+#include <libsolidity/interface/FTime.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -44,12 +45,14 @@ NameAndTypeResolver::NameAndTypeResolver(
 	m_scopes(_scopes),
 	m_errorReporter(_errorReporter)
 {
+	t_stack.push("NameAndTypeResolver::NameAndTypeResolver");
 	if (!m_scopes[nullptr])
 		m_scopes[nullptr].reset(new DeclarationContainer());
 	for (Declaration const* declaration: _globals)
 	{
 		solAssert(m_scopes[nullptr]->registerDeclaration(*declaration), "Unable to register global declaration.");
 	}
+	t_stack.pop();
 }
 
 bool NameAndTypeResolver::registerDeclarations(SourceUnit& _sourceUnit, ASTNode const* _currentScope)

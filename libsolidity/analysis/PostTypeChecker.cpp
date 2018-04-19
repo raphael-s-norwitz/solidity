@@ -20,6 +20,7 @@
 #include <libsolidity/analysis/SemVerHandler.h>
 #include <libsolidity/interface/ErrorReporter.h>
 #include <libsolidity/interface/Version.h>
+#include <libsolidity/interface/FTime.h>
 
 #include <libdevcore/Algorithms.h>
 
@@ -34,7 +35,9 @@ using namespace dev::solidity;
 
 bool PostTypeChecker::check(ASTNode const& _astRoot)
 {
+	t_stack.push("PostTypeChecker::check");
 	_astRoot.accept(*this);
+	t_stack.pop();
 	return Error::containsOnlyWarnings(m_errorReporter.errors());
 }
 

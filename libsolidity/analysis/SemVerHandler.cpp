@@ -22,6 +22,7 @@
 
 #include <libsolidity/analysis/SemVerHandler.h>
 #include <functional>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 using namespace dev;
@@ -132,16 +133,25 @@ bool SemVerMatchExpression::Conjunction::matches(SemVerVersion const& _version) 
 
 bool SemVerMatchExpression::matches(SemVerVersion const& _version) const
 {
+	t_stack.push("SemVerMatchExpression::matches");
 	if (!isValid())
+	{
+		t_stack.pop();
 		return false;
+	}
 	for (auto const& range: m_disjunction)
 		if (range.matches(_version))
+		{
+			t_stack.pop();
 			return true;
+		}
+	t_stack.pop();
 	return false;
 }
 
 SemVerMatchExpression SemVerMatchExpressionParser::parse()
 {
+	t_stack.push("SemVerMatchExpressionParser::parse");
 	reset();
 
 	try
@@ -160,7 +170,7 @@ SemVerMatchExpression SemVerMatchExpressionParser::parse()
 	{
 		reset();
 	}
-
+	t_stack.pop();
 	return m_expression;
 }
 

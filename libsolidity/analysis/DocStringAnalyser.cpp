@@ -24,6 +24,7 @@
 #include <libsolidity/analysis/DocStringAnalyser.h>
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/interface/ErrorReporter.h>
+ #include <libsolidity/interface/FTime.h>
 #include <libsolidity/parsing/DocStringParser.h>
 
 using namespace std;
@@ -32,9 +33,11 @@ using namespace dev::solidity;
 
 bool DocStringAnalyser::analyseDocStrings(SourceUnit const& _sourceUnit)
 {
+	t_stack.push("DocStringAnalyser::analyseDocStrings");
 	m_errorOccured = false;
 	_sourceUnit.accept(*this);
-
+	
+	t_stack.pop();
 	return !m_errorOccured;
 }
 

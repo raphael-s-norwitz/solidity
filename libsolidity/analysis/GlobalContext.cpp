@@ -25,7 +25,8 @@
 #include <libsolidity/analysis/GlobalContext.h>
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/ast/Types.h>
-
+#include <libsolidity/interface/FTime.h>
+ 
 using namespace std;
 
 namespace dev
@@ -67,30 +68,38 @@ m_magicVariables(vector<shared_ptr<MagicVariableDeclaration const>>{
 
 void GlobalContext::setCurrentContract(ContractDefinition const& _contract)
 {
+	t_stack.push("GlobalContext::setCurrentContract");
 	m_currentContract = &_contract;
+	t_stack.pop();
 }
 
 vector<Declaration const*> GlobalContext::declarations() const
 {
+	t_stack.push("GlobalContext::declarations");
 	vector<Declaration const*> declarations;
 	declarations.reserve(m_magicVariables.size());
 	for (ASTPointer<Declaration const> const& variable: m_magicVariables)
 		declarations.push_back(variable.get());
+	t_stack.pop();
 	return declarations;
 }
 
 MagicVariableDeclaration const* GlobalContext::currentThis() const
 {
+	t_stack.push("GlobalContext::currentThis");
 	if (!m_thisPointer[m_currentContract])
 		m_thisPointer[m_currentContract] = make_shared<MagicVariableDeclaration>("this", make_shared<ContractType>(*m_currentContract));
+	t_stack.pop();
 	return m_thisPointer[m_currentContract].get();
 
 }
 
 MagicVariableDeclaration const* GlobalContext::currentSuper() const
 {
+	t_stack.push("GlobalContext::currentSuper");
 	if (!m_superPointer[m_currentContract])
 		m_superPointer[m_currentContract] = make_shared<MagicVariableDeclaration>("super", make_shared<ContractType>(*m_currentContract, true));
+	t_stack.pop();
 	return m_superPointer[m_currentContract].get();
 }
 

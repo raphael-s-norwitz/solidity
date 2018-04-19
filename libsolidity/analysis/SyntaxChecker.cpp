@@ -22,6 +22,7 @@
 #include <libsolidity/analysis/SemVerHandler.h>
 #include <libsolidity/interface/ErrorReporter.h>
 #include <libsolidity/interface/Version.h>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 using namespace dev;
@@ -30,7 +31,9 @@ using namespace dev::solidity;
 
 bool SyntaxChecker::checkSyntax(ASTNode const& _astRoot)
 {
+	t_stack.push("SyntaxChecker::checkSyntax");
 	_astRoot.accept(*this);
+	t_stack.pop();
 	return Error::containsOnlyWarnings(m_errorReporter.errors());
 }
 

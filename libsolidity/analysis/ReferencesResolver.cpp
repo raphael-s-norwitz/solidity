@@ -29,6 +29,7 @@
 #include <libsolidity/inlineasm/AsmAnalysisInfo.h>
 #include <libsolidity/inlineasm/AsmData.h>
 #include <libsolidity/interface/ErrorReporter.h>
+#include <libsolidity/interface/FTime.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -39,7 +40,9 @@ using namespace dev::solidity;
 
 bool ReferencesResolver::resolve(ASTNode const& _root)
 {
+	t_stack.push("ReferencesResolver::resolve");
 	_root.accept(*this);
+	t_stack.pop();
 	return !m_errorOccurred;
 }
 

@@ -23,6 +23,7 @@
 #include <libsolidity/analysis/ConstantEvaluator.h>
 #include <libsolidity/ast/AST.h>
 #include <libsolidity/interface/ErrorReporter.h>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 using namespace dev;
@@ -30,13 +31,16 @@ using namespace dev::solidity;
 
 void ConstantEvaluator::endVisit(UnaryOperation const& _operation)
 {
+	t_stack.push("ConstantEvaluator::endVisit UnaryOperation");
 	auto sub = type(_operation.subExpression());
 	if (sub)
 		setType(_operation, sub->unaryOperatorResult(_operation.getOperator()));
+	t_stack.pop();
 }
 
 void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 {
+	t_stack.push("ConstantEvaluator::endVisit BinaryOperation");
 	auto left = type(_operation.leftExpression());
 	auto right = type(_operation.rightExpression());
 	if (left && right)
@@ -59,24 +63,37 @@ void ConstantEvaluator::endVisit(BinaryOperation const& _operation)
 			commonType
 		);
 	}
+	t_stack.pop();
 }
 
 void ConstantEvaluator::endVisit(Literal const& _literal)
 {
+	t_stack.push("ConstantEvaluator::endVisit Literal");
 	setType(_literal, Type::forLiteral(_literal));
+	t_stack.pop();
 }
 
 void ConstantEvaluator::endVisit(Identifier const& _identifier)
 {
+	t_stack.push("ConstantEvaluator::endVisit Identifier");
 	VariableDeclaration const* variableDeclaration = dynamic_cast<VariableDeclaration const*>(_identifier.annotation().referencedDeclaration);
 	if (!variableDeclaration)
+	{
+		t_stack.pop();
 		return;
+	}
 	if (!variableDeclaration->isConstant())
+	{
+		t_stack.pop();
 		return;
+	}
 
 	ASTPointer<Expression> const& value = variableDeclaration->value();
 	if (!value)
+	{
+		t_stack.pop();
 		return;
+	}
 	else if (!m_types->count(value.get()))
 	{
 		if (m_depth > 32)
@@ -85,27 +102,36 @@ void ConstantEvaluator::endVisit(Identifier const& _identifier)
 	}
 
 	setType(_identifier, type(*value));
+	t_stack.pop();
 }
 
 void ConstantEvaluator::endVisit(TupleExpression const& _tuple)
 {
+	t_stack.push("ConstantEvaluator::endVisit TupleExpression");
 	if (!_tuple.isInlineArray() && _tuple.components().size() == 1)
 		setType(_tuple, type(*_tuple.components().front()));
+	t_stack.pop();
 }
 
 void ConstantEvaluator::setType(ASTNode const& _node, TypePointer const& _type)
 {
+	t_stack.push("ConstantEvaluator::endVisit ASTNode");
 	if (_type && _type->category() == Type::Category::RationalNumber)
 		(*m_types)[&_node] = _type;
+	t_stack.pop();
 }
 
 TypePointer ConstantEvaluator::type(ASTNode const& _node)
 {
+	t_stack.push("ConstantEvaluator::endVisit ASTNode");
+	t_stack.pop();
 	return (*m_types)[&_node];
 }
 
 TypePointer ConstantEvaluator::evaluate(Expression const& _expr)
 {
+	t_stack.push("ConstantEvaluator::endVisit Expression");
 	_expr.accept(*this);
+	t_stack.pop();
 	return type(_expr);
 }

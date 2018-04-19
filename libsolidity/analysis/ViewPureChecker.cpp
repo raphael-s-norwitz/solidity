@@ -21,7 +21,7 @@
 
 #include <libsolidity/inlineasm/AsmData.h>
 #include <libsolidity/ast/ExperimentalFeatures.h>
-
+#include <libsolidity/interface/FTime.h>
 #include <functional>
 
 using namespace std;
@@ -116,6 +116,7 @@ private:
 
 bool ViewPureChecker::check()
 {
+	t_stack.push("ViewPureChecker::check");
 	// The bool means "enforce view with errors".
 	map<ContractDefinition const*, bool> contracts;
 
@@ -141,7 +142,7 @@ bool ViewPureChecker::check()
 		m_enforceViewWithError = contract.second;
 		contract.first->accept(*this);
 	}
-
+	t_stack.pop();
 	return !m_errors;
 }
 
