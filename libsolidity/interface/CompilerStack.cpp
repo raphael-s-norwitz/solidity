@@ -259,7 +259,9 @@ bool CompilerStack::analyze()
 
 		if (noErrors)
 		{
+			t_stack.push("SMTChecker::SMTChecker");
 			SMTChecker smtChecker(m_errorReporter, m_smtQuery);
+			t_stack.pop();
 			for (Source const* source: m_sourceOrder)
 				smtChecker.analyze(*source->ast);
 		}
