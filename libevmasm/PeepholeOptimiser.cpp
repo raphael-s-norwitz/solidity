@@ -23,6 +23,7 @@
 
 #include <libevmasm/AssemblyItem.h>
 #include <libevmasm/SemanticInformation.h>
+#include <libevmasm/FTime.h>
 
 using namespace std;
 using namespace dev::eth;
@@ -303,7 +304,8 @@ size_t numberOfPops(AssemblyItems const& _items)
 
 bool PeepholeOptimiser::optimise()
 {
-	OptimiserState state {m_items, 0, std::back_inserter(m_optimisedItems)};
+	t_stack.push("PeepholeOptimiser::optimise");
+        OptimiserState state {m_items, 0, std::back_inserter(m_optimisedItems)};
 	while (state.i < m_items.size())
 		applyMethods(state, PushPop(), OpPop(), DoublePush(), DoubleSwap(), CommutativeSwap(), SwapComparison(), JumpToNext(), UnreachableCode(), TagConjunctions(), Identity());
 	if (m_optimisedItems.size() < m_items.size() || (
@@ -314,8 +316,11 @@ bool PeepholeOptimiser::optimise()
 	))
 	{
 		m_items = std::move(m_optimisedItems);
+                t_stack.pop();
 		return true;
 	}
-	else
-		return false;
+	else {
+		t_stack.pop();
+                return false;
+        }
 }

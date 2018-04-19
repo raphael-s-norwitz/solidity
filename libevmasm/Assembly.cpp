@@ -32,6 +32,8 @@
 #include <fstream>
 #include <json/json.h>
 
+#include <libevmasm/FTime.h>
+
 using namespace std;
 using namespace dev;
 using namespace dev::eth;
@@ -355,7 +357,8 @@ void Assembly::injectStart(AssemblyItem const& _i)
 
 Assembly& Assembly::optimise(bool _enable, EVMVersion _evmVersion, bool _isCreation, size_t _runs)
 {
-	OptimiserSettings settings;
+	t_stack.push("Assembly::optimse");
+        OptimiserSettings settings;
 	settings.isCreation = _isCreation;
 	settings.runJumpdestRemover = true;
 	settings.runPeephole = true;
@@ -368,13 +371,16 @@ Assembly& Assembly::optimise(bool _enable, EVMVersion _evmVersion, bool _isCreat
 	settings.evmVersion = _evmVersion;
 	settings.expectedExecutionsPerDeployment = _runs;
 	optimise(settings);
+        t_stack.pop();
 	return *this;
 }
 
 
 Assembly& Assembly::optimise(OptimiserSettings const& _settings)
 {
-	optimiseInternal(_settings, {});
+	t_stack.push("OptimiserSettings::optimise");
+        optimiseInternal(_settings, {});
+        t_stack.pop();
 	return *this;
 }
 
@@ -384,7 +390,8 @@ map<u256, u256> Assembly::optimiseInternal(
 )
 {
 	// Run optimisation for sub-assemblies.
-	for (size_t subId = 0; subId < m_subs.size(); ++subId)
+	t_stack.push("OptimiseInternal");
+        for (size_t subId = 0; subId < m_subs.size(); ++subId)
 	{
 		OptimiserSettings settings = _settings;
 		// Disable creation mode for sub-assemblies.
@@ -396,20 +403,20 @@ map<u256, u256> Assembly::optimiseInternal(
 		// Apply the replacements (can be empty).
 		BlockDeduplicator::applyTagReplacement(m_items, subTagReplacements, subId);
 	}
-
 	map<u256, u256> tagReplacements;
 	// Iterate until no new optimisation possibilities are found.
 	for (unsigned count = 1; count > 0;)
 	{
 		count = 0;
-
+                t_stack.push("test1");
 		if (_settings.runJumpdestRemover)
 		{
 			JumpdestRemover jumpdestOpt(m_items);
 			if (jumpdestOpt.optimise(_tagsReferencedFromOutside))
 				count++;
 		}
-
+                t_stack.pop();
+                t_stack.push("runPeephole");
 		if (_settings.runPeephole)
 		{
 			PeepholeOptimiser peepOpt(m_items);
@@ -419,7 +426,8 @@ map<u256, u256> Assembly::optimiseInternal(
 				assertThrow(count < 64000, OptimizerException, "Peephole optimizer seems to be stuck.");
 			}
 		}
-
+                t_stack.pop();
+                t_stack.push("runDeduplicate");
 		// This only modifies PushTags, we have to run again to actually remove code.
 		if (_settings.runDeduplicate)
 		{
@@ -430,7 +438,8 @@ map<u256, u256> Assembly::optimiseInternal(
 				count++;
 			}
 		}
-
+                t_stack.pop();
+                t_stack.push("test3");
 		if (_settings.runCSE)
 		{
 			// Control flow graph optimization has been here before but is disabled because it
@@ -479,6 +488,7 @@ map<u256, u256> Assembly::optimiseInternal(
 				count++;
 			}
 		}
+                t_stack.pop();
 	}
 
 	if (_settings.runConstantOptimiser)
@@ -489,7 +499,7 @@ map<u256, u256> Assembly::optimiseInternal(
 			*this,
 			m_items
 		);
-
+        t_stack.pop();
 	return tagReplacements;
 }
 
