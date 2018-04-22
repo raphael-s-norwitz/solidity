@@ -32,7 +32,7 @@
 #include <fstream>
 #include <json/json.h>
 
-#include <libevmasm/FTime.h>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 using namespace dev;

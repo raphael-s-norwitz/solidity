@@ -23,7 +23,7 @@
 
 #include <libevmasm/AssemblyItem.h>
 #include <libevmasm/SemanticInformation.h>
-#include <libevmasm/FTime.h>
+#include <libsolidity/interface/FTime.h>
 
 using namespace std;
 using namespace dev::eth;
