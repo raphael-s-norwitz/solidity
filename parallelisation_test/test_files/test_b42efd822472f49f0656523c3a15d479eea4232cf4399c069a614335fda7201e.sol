@@ -1,0 +1,2 @@
+		(returnlll
+			(return (sha3trip 0x01 0x02 0x03)))

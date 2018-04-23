@@ -1,0 +1,2 @@
+		(returnlll
+			(return (- (gas) allgas)))
