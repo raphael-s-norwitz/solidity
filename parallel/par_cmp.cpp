@@ -13,9 +13,9 @@
 using namespace std;
 std::experimental::filesystem::path root_path;
 /*
- *run system with compiler, flags, and path and remains 
+   run system with compiler, flags, and path
 */
-int f(string compiler, string flags, string files, std::experimental::filesystem::path current) 
+int compile(string compiler, string flags, string files, std::experimental::filesystem::path current) 
 {
   string cur = current.string();
   std::experimental::filesystem::path output_dir = cur + (cur[cur.length() - 1] == '/' ? "bin" : "/bin");
@@ -26,7 +26,7 @@ int f(string compiler, string flags, string files, std::experimental::filesystem
 
 /*
     start a parallel compiling process
- */
+*/
 void parallel_compile(string& compiler, string& flags, vector<string> &sources, vector<future<int>> &vec_res) {
   //obtain num cpus
   int cpus = std::thread::hardware_concurrency();
@@ -41,7 +41,7 @@ void parallel_compile(string& compiler, string& flags, vector<string> &sources, 
     for (auto & str : sources) {
       to_compile += str + " ";
     }
-    f(compiler, flags, to_compile, root_path);
+    compile(compiler, flags, to_compile, root_path);
   } else {
     int task_for_each_cpu;
     if (sources.size() < cpus) { 
@@ -69,7 +69,7 @@ void parallel_compile(string& compiler, string& flags, vector<string> &sources, 
     }
     //TODO: is this the most efficient way, i.e. cycle through all asyncs and get
     for (auto task : tasks) {
-      vec_res.push_back(async(std::launch::async, f, compiler, flags, task, root_path));
+      vec_res.push_back(async(std::launch::async, compile, compiler, flags, task, root_path));
     }
   }
 }
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
       for (auto & task : sources) {
         tasks += task + " ";
       }
-      vec_res.push_back(async(std::launch::async, f, compiler, flags, tasks, path));
+      vec_res.push_back(async(std::launch::async, compile, compiler, flags, tasks, path));
     }
   }
   for_each(vec_res.begin(), vec_res.end(), [](future<int> &res){ res.get(); });
