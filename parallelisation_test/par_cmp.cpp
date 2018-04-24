@@ -17,11 +17,11 @@ std::experimental::filesystem::path root_path;
 */
 int f(string compiler, string flags, string files, std::experimental::filesystem::path current) 
 {
-  std::experimental::filesystem::path output_dir = current.c_str() + string("/tmp");
+  string cur = current.string();
+  std::experimental::filesystem::path output_dir = cur + (cur[cur.length() - 1] == '/' ? "bin" : "/bin");
   std::experimental::filesystem::create_directory(output_dir);
-  string cmd = compiler + " -o " + current.c_str() + "/tmp/ " + flags + " " + files;
-  system(cmd.c_str());
-  return 0;
+  string cmd = compiler + " -o " + current.string() + "/bin/ " + flags + " " + files;
+  return system(cmd.c_str());
 }
 
 /*
@@ -79,17 +79,17 @@ void distribute_tasks(string& path, string& extension, vector<tuple<std::experim
   if (isRoot) {
     for (auto &p : std::experimental::filesystem::directory_iterator(path)) {
       if (!std::experimental::filesystem::is_directory(p)) {
-        string temp = string(p.path().c_str());
-        if (temp.find(extension) != -1)
+        string temp = p.path().string();
+        if (temp.find(extension) != -1 && temp.find(extension) == temp.length() - extension.length())
           sources.push_back(temp);
       } else {
-        string temp = string(p.path().c_str());
+        string temp = p.path().string();
         distribute_tasks(temp, extension, pool, false);
       }
     }
   } else {
-    sources.push_back(path.c_str() + string("/*") + extension);
-    sources.push_back(path.c_str() + string("/*/*") + extension);
+    sources.push_back(path + ("/*") + extension);
+    sources.push_back(path + ("/*/*") + extension);
   }
   if (sources.size() != 0) {
     std::experimental::filesystem::path p = path;
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 {
   if (argc < 5) {
 
-    cerr << "[test] [path_to_compiler] [flags] [directory] [extension]" << '\n';
+    cerr << "[executable] [path_to_compiler] [flags] [directory] [extension]" << '\n';
     cerr << "[path_to_compiler] is the path to the compiler executable.\n";
     cerr << "[flags] is the flags for the compiler executable, like \"--bin\" for solidity.\n";
     cerr << "[directory] is the top level directory of the code to compile." << '\n';
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
   vector<tuple<std::experimental::filesystem::path, vector<string>>> pool;
   vector<future<int>> vec_res;
   root_path = std::experimental::filesystem::system_complete(argv[3]);
-  path = root_path.c_str();
+  path = root_path.string();
   distribute_tasks(path, extension, pool, true);
 
   for (auto & p : pool) {
