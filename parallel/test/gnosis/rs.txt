@@ -1,0 +1,272 @@
+Warning: This is a pre-release compiler version, please do not use it in production.
+Tokens/OutcomeToken.sol:34:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function OutcomeToken()
+    ^ (Relevant source part starts here and spans across multiple lines).
+Events/Event.sol:36:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function Event(Token _collateralToken, Oracle _oracle, uint8 outcomeCount)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Events/CategoricalEvent.sol:16:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function CategoricalEvent(
+    ^ (Relevant source part starts here and spans across multiple lines).
+Events/ScalarEvent.sol:31:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function ScalarEvent(
+    ^ (Relevant source part starts here and spans across multiple lines).
+MarketMakers/LMSRMarketMaker.sol:98:14: Warning: Use of the "var" keyword is deprecated.
+        var (sum, , outcomeExpTerm) = sumExpOffset(logN, netOutcomeTokensSold, funding, outcomeTokenIndex);
+             ^-^
+MarketMakers/LMSRMarketMaker.sol:98:21: Warning: Use of the "var" keyword is deprecated.
+        var (sum, , outcomeExpTerm) = sumExpOffset(logN, netOutcomeTokensSold, funding, outcomeTokenIndex);
+                    ^------------^
+MarketMakers/LMSRMarketMaker.sol:119:14: Warning: Use of the "var" keyword is deprecated.
+        var (sum, offset, ) = sumExpOffset(logN, netOutcomeTokensSold, funding, 0);
+             ^-^
+MarketMakers/LMSRMarketMaker.sol:119:19: Warning: Use of the "var" keyword is deprecated.
+        var (sum, offset, ) = sumExpOffset(logN, netOutcomeTokensSold, funding, 0);
+                  ^----^
+Markets/StandardMarket.sol:41:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function StandardMarket(address _creator, Event _eventContract, MarketMaker _marketMaker, uint24 _fee)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Markets/Campaign.sol:73:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function Campaign(
+    ^ (Relevant source part starts here and spans across multiple lines).
+Migrations.sol:11:3: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+  function Migrations() {
+  ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/CentralizedOracle.sol:37:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function CentralizedOracle(address _owner, bytes _ipfsHash)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/DifficultyOracle.sol:25:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function DifficultyOracle(uint _blockNumber)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/FutarchyOracle.sol:58:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function FutarchyOracle(
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/FutarchyOracleFactory.sol:36:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function FutarchyOracleFactory(EventFactory _eventFactory)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/MajorityOracle.sol:19:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function MajorityOracle(Oracle[] _oracles)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/MajorityOracle.sol:75:14: Warning: Use of the "var" keyword is deprecated.
+        var (outcomeSet, ) = getStatusAndOutcome();
+             ^--------^
+Oracles/MajorityOracle.sol:86:16: Warning: Use of the "var" keyword is deprecated.
+        var (, winningOutcome) = getStatusAndOutcome();
+               ^------------^
+Oracles/SignedMessageOracle.sol:41:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function SignedMessageOracle(bytes32 _descriptionHash, uint8 v, bytes32 r, bytes32 s)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/UltimateOracle.sol:49:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function UltimateOracle(
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:182:18: Warning: This declaration shadows an existing declaration.
+        returns (int max)
+                 ^-----^
+Utils/Math.sol:179:5: The shadowed declaration is here:
+    function max(int[] nums)
+    ^ (Relevant source part starts here and spans across multiple lines).
+
+Tokens/StandardToken.sol:33:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Transfer(msg.sender, to, value);
+        ^-----------------------------^
+Tokens/StandardToken.sol:53:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Transfer(from, to, value);
+        ^-----------------------^
+Tokens/StandardToken.sol:66:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Approval(msg.sender, spender, value);
+        ^----------------------------------^
+Tokens/OutcomeToken.sol:49:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Issuance(_for, outcomeTokenCount);
+        ^-------------------------------^
+Tokens/OutcomeToken.sol:61:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Revocation(_for, outcomeTokenCount);
+        ^---------------------------------^
+Events/Event.sol:47:13: Warning: Invoking events without "emit" prefix is deprecated.
+            OutcomeTokenCreation(outcomeToken, i);
+            ^-----------------------------------^
+Events/Event.sol:61:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeTokenSetIssuance(msg.sender, collateralTokenCount);
+        ^-------------------------------------------------------^
+Events/Event.sol:74:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeTokenSetRevocation(msg.sender, outcomeTokenCount);
+        ^------------------------------------------------------^
+Events/Event.sol:86:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeAssignment(outcome);
+        ^------------------------^
+Events/CategoricalEvent.sol:41:9: Warning: Invoking events without "emit" prefix is deprecated.
+        WinningsRedemption(msg.sender, winnings);
+        ^--------------------------------------^
+Events/ScalarEvent.sol:75:9: Warning: Invoking events without "emit" prefix is deprecated.
+        WinningsRedemption(msg.sender, winnings);
+        ^--------------------------------------^
+Events/EventFactory.sol:48:9: Warning: Invoking events without "emit" prefix is deprecated.
+        CategoricalEventCreation(msg.sender, eventContract, collateralToken, oracle, outcomeCount);
+        ^----------------------------------------------------------------------------------------^
+Events/EventFactory.sol:77:9: Warning: Invoking events without "emit" prefix is deprecated.
+        ScalarEventCreation(msg.sender, eventContract, collateralToken, oracle, lowerBound, upperBound);
+        ^---------------------------------------------------------------------------------------------^
+Markets/StandardMarket.sol:68:9: Warning: Invoking events without "emit" prefix is deprecated.
+        MarketFunding(funding);
+        ^--------------------^
+Markets/StandardMarket.sol:81:9: Warning: Invoking events without "emit" prefix is deprecated.
+        MarketClosing();
+        ^-------------^
+Markets/StandardMarket.sol:94:9: Warning: Invoking events without "emit" prefix is deprecated.
+        FeeWithdrawal(fees);
+        ^-----------------^
+Markets/StandardMarket.sol:124:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeTokenPurchase(msg.sender, outcomeTokenIndex, outcomeTokenCount, cost);
+        ^--------------------------------------------------------------------------^
+Markets/StandardMarket.sol:153:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeTokenSale(msg.sender, outcomeTokenIndex, outcomeTokenCount, profit);
+        ^------------------------------------------------------------------------^
+Markets/StandardMarket.sol:181:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeTokenShortSale(msg.sender, outcomeTokenIndex, outcomeTokenCount, cost);
+        ^---------------------------------------------------------------------------^
+Markets/StandardMarketFactory.sol:23:9: Warning: Invoking events without "emit" prefix is deprecated.
+        MarketCreation(msg.sender, market, eventContract, marketMaker, fee);
+        ^-----------------------------------------------------------------^
+Markets/Campaign.sol:114:9: Warning: Invoking events without "emit" prefix is deprecated.
+        CampaignFunding(msg.sender, amount);
+        ^---------------------------------^
+Markets/Campaign.sol:129:9: Warning: Invoking events without "emit" prefix is deprecated.
+        CampaignRefund(msg.sender, refundAmount);
+        ^--------------------------------------^
+Markets/Campaign.sol:144:9: Warning: Invoking events without "emit" prefix is deprecated.
+        MarketCreation(market);
+        ^--------------------^
+Markets/Campaign.sol:161:9: Warning: Invoking events without "emit" prefix is deprecated.
+        MarketClosing();
+        ^-------------^
+Markets/Campaign.sol:175:9: Warning: Invoking events without "emit" prefix is deprecated.
+        FeeWithdrawal(msg.sender, fees);
+        ^-----------------------------^
+Markets/CampaignFactory.sol:37:9: Warning: Invoking events without "emit" prefix is deprecated.
+        CampaignCreation(msg.sender, campaign, eventContract, marketFactory, marketMaker, fee, funding, deadline);
+        ^-------------------------------------------------------------------------------------------------------^
+Oracles/CentralizedOracle.sol:55:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OwnerReplacement(newOwner);
+        ^------------------------^
+Oracles/CentralizedOracle.sol:68:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeAssignment(_outcome);
+        ^-------------------------^
+Oracles/CentralizedOracleFactory.sol:25:9: Warning: Invoking events without "emit" prefix is deprecated.
+        CentralizedOracleCreation(msg.sender, centralizedOracle, ipfsHash);
+        ^----------------------------------------------------------------^
+Oracles/DifficultyOracle.sol:40:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeAssignment(difficulty);
+        ^---------------------------^
+Oracles/DifficultyOracleFactory.sol:25:9: Warning: Invoking events without "emit" prefix is deprecated.
+        DifficultyOracleCreation(msg.sender, difficultyOracle, blockNumber);
+        ^-----------------------------------------------------------------^
+Oracles/FutarchyOracle.sol:108:9: Warning: Invoking events without "emit" prefix is deprecated.
+        FutarchyFunding(funding);
+        ^----------------------^
+Oracles/FutarchyOracle.sol:126:9: Warning: Invoking events without "emit" prefix is deprecated.
+        FutarchyClosing();
+        ^---------------^
+Oracles/FutarchyOracle.sol:147:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeAssignment(winningMarketIndex);
+        ^-----------------------------------^
+Oracles/FutarchyOracleFactory.sol:81:9: Warning: Invoking events without "emit" prefix is deprecated.
+        FutarchyOracleCreation(
+        ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/MajorityOracleFactory.sol:25:9: Warning: Invoking events without "emit" prefix is deprecated.
+        MajorityOracleCreation(msg.sender, majorityOracle, oracles);
+        ^---------------------------------------------------------^
+Oracles/SignedMessageOracle.sol:64:9: Warning: Invoking events without "emit" prefix is deprecated.
+        SignerReplacement(newSigner);
+        ^--------------------------^
+Oracles/SignedMessageOracle.sol:80:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeAssignment(_outcome);
+        ^-------------------------^
+Oracles/SignedMessageOracleFactory.sol:29:9: Warning: Invoking events without "emit" prefix is deprecated.
+        SignedMessageOracleCreation(msg.sender, signedMessageOracle, oracle);
+        ^------------------------------------------------------------------^
+Oracles/UltimateOracle.sol:84:9: Warning: Invoking events without "emit" prefix is deprecated.
+        ForwardedOracleOutcomeAssignment(forwardedOutcome);
+        ^------------------------------------------------^
+Oracles/UltimateOracle.sol:101:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeChallenge(msg.sender, _outcome);
+        ^------------------------------------^
+Oracles/UltimateOracle.sol:125:9: Warning: Invoking events without "emit" prefix is deprecated.
+        OutcomeVote(msg.sender, _outcome, amount);
+        ^---------------------------------------^
+Oracles/UltimateOracle.sol:140:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Withdrawal(msg.sender, amount);
+        ^----------------------------^
+Oracles/UltimateOracleFactory.sol:53:9: Warning: Invoking events without "emit" prefix is deprecated.
+        UltimateOracleCreation(
+        ^ (Relevant source part starts here and spans across multiple lines).
+Tokens/EtherToken.sol:33:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Deposit(msg.sender, msg.value);
+        ^----------------------------^
+Tokens/EtherToken.sol:45:9: Warning: Invoking events without "emit" prefix is deprecated.
+        Withdrawal(msg.sender, value);
+        ^---------------------------^
+Migrations.sol:11:3: Warning: No visibility specified. Defaulting to "public". 
+  function Migrations() {
+  ^ (Relevant source part starts here and spans across multiple lines).
+Migrations.sol:15:3: Warning: No visibility specified. Defaulting to "public". 
+  function setCompleted(uint completed) restricted {
+  ^ (Relevant source part starts here and spans across multiple lines).
+Migrations.sol:19:3: Warning: No visibility specified. Defaulting to "public". 
+  function upgrade(address new_address) restricted {
+  ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/MajorityOracle.sol:33:5: Warning: Function state mutability can be restricted to view
+    function getStatusAndOutcome()
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/MajorityOracle.sol:75:30: Warning: Function declared as view, but this expression (potentially) modifies the state and thus requires non-payable (the default) or payable.
+        var (outcomeSet, ) = getStatusAndOutcome();
+                             ^-------------------^
+Oracles/MajorityOracle.sol:86:34: Warning: Function declared as view, but this expression (potentially) modifies the state and thus requires non-payable (the default) or payable.
+        var (, winningOutcome) = getStatusAndOutcome();
+                                 ^-------------------^
+Oracles/UltimateOracle.sol:145:5: Warning: Function state mutability can be restricted to view
+    function isChallengePeriodOver()
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/UltimateOracle.sol:154:5: Warning: Function state mutability can be restricted to view
+    function isFrontRunnerPeriodOver()
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/UltimateOracle.sol:163:5: Warning: Function state mutability can be restricted to view
+    function isChallenged()
+    ^ (Relevant source part starts here and spans across multiple lines).
+Oracles/UltimateOracle.sol:177:19: Warning: Function declared as view, but this expression (potentially) modifies the state and thus requires non-payable (the default) or payable.
+        return    isChallengePeriodOver() && !isChallenged()
+                  ^---------------------^
+Oracles/UltimateOracle.sol:177:47: Warning: Function declared as view, but this expression (potentially) modifies the state and thus requires non-payable (the default) or payable.
+        return    isChallengePeriodOver() && !isChallenged()
+                                              ^------------^
+Oracles/UltimateOracle.sol:178:19: Warning: Function declared as view, but this expression (potentially) modifies the state and thus requires non-payable (the default) or payable.
+               || isFrontRunnerPeriodOver();
+                  ^-----------------------^
+Oracles/UltimateOracle.sol:188:13: Warning: Function declared as view, but this expression (potentially) modifies the state and thus requires non-payable (the default) or payable.
+        if (isFrontRunnerPeriodOver())
+            ^-----------------------^
+Utils/Math.sol:23:5: Warning: Function state mutability can be restricted to pure
+    function exp(int x)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:158:5: Warning: Function state mutability can be restricted to pure
+    function floorLog2(uint x)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:179:5: Warning: Function state mutability can be restricted to pure
+    function max(int[] nums)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:195:5: Warning: Function state mutability can be restricted to pure
+    function safeToAdd(uint a, uint b)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:207:5: Warning: Function state mutability can be restricted to pure
+    function safeToSub(uint a, uint b)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:219:5: Warning: Function state mutability can be restricted to pure
+    function safeToMul(uint a, uint b)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:270:5: Warning: Function state mutability can be restricted to pure
+    function safeToAdd(int a, int b)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:282:5: Warning: Function state mutability can be restricted to pure
+    function safeToSub(int a, int b)
+    ^ (Relevant source part starts here and spans across multiple lines).
+Utils/Math.sol:294:5: Warning: Function state mutability can be restricted to pure
+    function safeToMul(int a, int b)
+    ^ (Relevant source part starts here and spans across multiple lines).
