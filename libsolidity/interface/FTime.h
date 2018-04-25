@@ -46,7 +46,7 @@ class TimeNodeStack
 {
 public:
 	TimeNodeStack();
-        ~TimeNodeStack();
+    ~TimeNodeStack();
 	void push(std::string name);
 	void pop();
 	std::string printString(bool tree);
@@ -59,6 +59,18 @@ private:
 	std::vector<TimeNode> stack;
 	std::vector<TimeNode> print_stack;
 	std::chrono::high_resolution_clock::time_point start;
+};
+
+class TimeNodeWrapper
+{
+public:
+	bool popped;
+	TimeNodeWrapper(TimeNodeStack& t_stack, std::string name);
+	void pop();
+	~TimeNodeWrapper();
+
+private:
+	TimeNodeStack& stack;
 };
 
 extern TimeNodeStack t_stack;
