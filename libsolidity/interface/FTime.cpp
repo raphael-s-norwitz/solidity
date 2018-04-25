@@ -32,6 +32,27 @@
 
 using namespace std;
 
+TimeNodeWrapper::TimeNodeWrapper(TimeNodeStack& t_stack, string name): stack(t_stack) {
+	t_stack.push(name);
+	popped = false;
+}
+
+TimeNodeWrapper::~TimeNodeWrapper() {
+	if (!popped) {
+		stack.pop();
+		popped = true;
+	}
+}
+
+void TimeNodeWrapper::pop() {
+	if (!popped) {
+		stack.pop();
+		popped = true;
+	} else {
+		cout << "Error: Already popped!\n";
+	}
+}
+
 TimeNode::TimeNode() {
 	children = vector<TimeNode>();
 }
