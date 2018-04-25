@@ -46,12 +46,23 @@ BOOST_AUTO_TEST_CASE(defalut_print_false)
 	BOOST_REQUIRE(!t_stack.print_flag);
 };
 
-	
+BOOST_AUTO_TEST_CASE(basic_push_wrapper)
+{
+	BOOST_REQUIRE_NO_THROW(TimeNodeWrapper(t_stack, "hello"));
+};
+
+BOOST_AUTO_TEST_CASE(basic_push_pop_wrapper)
+{
+	TimeNodeWrapper myWrapper(t_stack, "Basic test");
+	BOOST_REQUIRE_NO_THROW(myWrapper.pop());
+	BOOST_CHECK_THROW(myWrapper.pop(), std::runtime_error);
+};
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
 
-BOOST_AUTO_TEST_SUITE(FTimeFunc)
+BOOST_AUTO_TEST_SUITE(FTimePushPop)
 
 BOOST_AUTO_TEST_CASE(new_push_pop)
 {
@@ -168,6 +179,90 @@ BOOST_AUTO_TEST_CASE(notree_three_level)
 
 };
 
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(FTimeWrapper)
+
+BOOST_AUTO_TEST_CASE(new_push_pop_wrapper)
+{
+	TimeNodeStack new_stack;
+
+	TimeNodeWrapper test1(new_stack,"hello");
+	TimeNodeWrapper test2(new_stack,"world");
+
+	
+	BOOST_REQUIRE_NO_THROW(test2.pop());
+	BOOST_REQUIRE_NO_THROW(test1.pop());
+};
+
+BOOST_AUTO_TEST_CASE(check_scoped_destructor)
+{
+	TimeNodeStack new_stack;
+
+	TimeNodeWrapper test1(new_stack,"hello");
+	{
+		TimeNodeWrapper test2(new_stack, "world");
+		TimeNodeWrapper test3(new_stack, "!!");
+	}
+	BOOST_REQUIRE_NO_THROW(test1.pop());
+	
+	
+	std::string result = new_stack.printString(true);
+	
+	std::regex reg("(namespace/function name)[\\s]+(unix begin time)"
+			"(.*)[\\s]+(.*)\n(-*)\n"
+			"(hello)(\\s+)(\\d+)(\\s+)(\\d+)(.*)\n"
+			"( \\\\_world)(\\s+)(\\d+)(\\s+)(\\d+)(.*)\n"
+			"(     \\\\_!!)(\\s+)(\\d+)(\\s+)(\\d+)(.*)\n");
+	BOOST_REQUIRE(std::regex_match(result, reg));
+
+};
+
+BOOST_AUTO_TEST_CASE(check_scoped_and_pop)
+{
+	TimeNodeStack new_stack;
+
+	TimeNodeWrapper test1(new_stack,"hello");
+	{
+		TimeNodeWrapper test2(new_stack, "world");
+		test2.pop();
+		TimeNodeWrapper test3(new_stack, "!!");
+	}
+	BOOST_REQUIRE_NO_THROW(test1.pop());
+	
+	
+	std::string result = new_stack.printString(true);
+	
+	std::regex reg("(namespace/function name)[\\s]+(unix begin time)"
+			"(.*)[\\s]+(.*)\n(-*)\n"
+			"(hello)(\\s+)(\\d+)(\\s+)(\\d+)(.*)\n"
+			"( \\\\_world)(\\s+)(\\d+)(\\s+)(\\d+)(.*)\n"
+			"( \\\\_!!)(\\s+)(\\d+)(\\s+)(\\d+)(.*)\n");
+
+	BOOST_REQUIRE(std::regex_match(result, reg));
+
+};
+
+BOOST_AUTO_TEST_CASE(check_already_popped)
+{
+	TimeNodeStack new_stack;
+
+	TimeNodeWrapper test1(new_stack,"hello");
+	TimeNodeWrapper test2(new_stack, "world");
+	BOOST_CHECK_NO_THROW(test2.pop());
+	BOOST_CHECK_THROW(test2.pop(), std::runtime_error);
+};
+
+
+
+BOOST_AUTO_TEST_CASE(check_wrong_pop_name)
+{
+	TimeNodeStack new_stack;
+
+	TimeNodeWrapper test1(new_stack,"hello");
+	TimeNodeWrapper test2(new_stack, "world");
+	BOOST_CHECK_THROW(test1.pop(), std::runtime_error);
+};
 
 
 BOOST_AUTO_TEST_SUITE_END()

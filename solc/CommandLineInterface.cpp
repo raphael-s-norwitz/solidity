@@ -408,7 +408,8 @@ void CommandLineInterface::handleGasEstimation(string const& _contract)
 
 bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 {
-	t_stack.push("CLI::readInputFilesAndConfigureRemappings");
+	TimeNodeWrapper(t_stack, "CLI::readInputFilesAndConfigureRemappings");
+
         bool ignoreMissing = m_args.count(g_argIgnoreMissingFiles);
 	bool addStdin = false;
 	if (!m_args.count(g_argInputFile))
@@ -429,7 +430,6 @@ bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 					if (!ignoreMissing)
 					{
 						cerr << "\"" << infile << "\" is not found" << endl;
-						t_stack.pop();
 						return false;
 					}
 					else
@@ -443,7 +443,6 @@ bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 					if (!ignoreMissing)
 					{
 						cerr << "\"" << infile << "\" is not a valid file" << endl;
-						t_stack.pop();
 						return false;
 					}
 					else
@@ -459,7 +458,6 @@ bool CommandLineInterface::readInputFilesAndConfigureRemappings()
 		}
 	if (addStdin)
 		m_sourceCodes[g_stdinFileName] = dev::readStandardInput();
-        t_stack.pop();
 	return true;
 }
 

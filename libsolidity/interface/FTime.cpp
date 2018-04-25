@@ -32,8 +32,10 @@
 
 using namespace std;
 
-TimeNodeWrapper::TimeNodeWrapper(TimeNodeStack& t_stack, string name): stack(t_stack) {
-	t_stack.push(name);
+TimeNodeWrapper::TimeNodeWrapper(TimeNodeStack& given_stack,
+		string given_name): stack(given_stack) {
+	name = given_name;
+	given_stack.push(given_name);
 	popped = false;
 }
 
@@ -46,10 +48,15 @@ TimeNodeWrapper::~TimeNodeWrapper() {
 
 void TimeNodeWrapper::pop() {
 	if (!popped) {
-		stack.pop();
+		string found_name = stack.pop();
 		popped = true;
+		if (found_name != name) {
+			throw(std::runtime_error("Incorrect pop() call on " + 
+						name + ": " + found_name + 
+						" popped off the stack"));
+		}
 	} else {
-		cout << "Error: Already popped!\n";
+		throw(std::runtime_error("Error: " + name + " Already popped!"));
 	}
 }
 
@@ -101,14 +108,16 @@ void TimeNodeStack::push(string name)
 	stack.push_back(t_node);
 }
 
-void TimeNodeStack::pop()
+string TimeNodeStack::pop()
 {
+	string retName;
 	if (stack.size() > 1)
 	{
 		TimeNode t_node = stack[stack.size() - 1];
 		stack.pop_back();
 		t_node.setEnd();
 		stack[stack.size() - 1].children.push_back(t_node);
+		retName = t_node.name;
 	}
 	else if (stack.size() == 1)
 	{
@@ -125,11 +134,13 @@ void TimeNodeStack::pop()
                         print_stack.push_back(stack[0]);
                         stack.pop_back();
                 }
+		retName = stack[0].name;
 	}
 	else
 	{
 		throw runtime_error("error: tried to pop() from empty stack");
 	}
+	return retName;
 }
 
 void TimeNodeStack::print_recursive(const TimeNode& x, const string& arrow,

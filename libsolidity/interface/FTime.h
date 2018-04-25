@@ -46,9 +46,9 @@ class TimeNodeStack
 {
 public:
 	TimeNodeStack();
-    ~TimeNodeStack();
+	~TimeNodeStack();
 	void push(std::string name);
-	void pop();
+	std::string pop();
 	std::string printString(bool tree);
 	void print();
 	void print_recursive(const TimeNode& x, const std::string& arrow, 
@@ -64,12 +64,13 @@ private:
 class TimeNodeWrapper
 {
 public:
-	bool popped;
-	TimeNodeWrapper(TimeNodeStack& t_stack, std::string name);
+	TimeNodeWrapper(TimeNodeStack& t_stack, std::string given_name);
 	void pop();
 	~TimeNodeWrapper();
 
 private:
+	std::string name;
+	bool popped;
 	TimeNodeStack& stack;
 };
 
