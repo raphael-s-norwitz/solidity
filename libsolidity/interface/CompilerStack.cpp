@@ -58,7 +58,7 @@ using namespace dev::solidity;
 
 void CompilerStack::setRemappings(vector<string> const& _remappings)
 {
-	t_stack.push("CompilerStack::setRemappings");
+	TimeNodeWrapper profileSetRemappings(t_stack, "CompilerStack::setRemappings");
         vector<Remapping> remappings;
 	for (auto const& remapping: _remappings)
 	{
@@ -73,15 +73,13 @@ void CompilerStack::setRemappings(vector<string> const& _remappings)
 		remappings.push_back(r);
 	}
 	swap(m_remappings, remappings);
-        t_stack.pop();
 }
 
 void CompilerStack::setEVMVersion(EVMVersion _version)
 {
-	t_stack.push("CompilerStack::setEVMVersion");
+	TimeNodeWrapper profile(t_stack, "CompilerStack::setEVMVersion");
         solAssert(m_stackState < State::ParsingSuccessful, "Set EVM version after parsing.");
 	m_evmVersion = _version;
-        t_stack.pop();
 }
 
 void CompilerStack::reset(bool _keepSources)
@@ -121,9 +119,8 @@ bool CompilerStack::addSource(string const& _name, string const& _content, bool 
 bool CompilerStack::parse()
 {
 	//reset
-        t_stack.push("CompilerStack::parse");
+        TimeNodeWrapper profile(t_stack, "CompilerStack::parse");
 	if(m_stackState != SourcesSet) {
-		t_stack.pop();
 		return false;
 	}
 	m_errorReporter.clear();
@@ -158,20 +155,17 @@ bool CompilerStack::parse()
 	if (Error::containsOnlyWarnings(m_errorReporter.errors()))
 	{
 		m_stackState = ParsingSuccessful;
-                t_stack.pop();
 		return true;
 	}
 	else {
-		t_stack.pop();
 		return false;
 	}
 }
 
 bool CompilerStack::analyze()
 {
-	t_stack.push("CompilerStack::analyze");
+	TimeNodeWrapper profile(t_stack, "CompilerStack::analyze");
         if (m_stackState != ParsingSuccessful) {
-                t_stack.pop();
 		return false;
 	}
 	resolveImports();
@@ -193,7 +187,6 @@ bool CompilerStack::analyze()
 		NameAndTypeResolver resolver(m_globalContext->declarations(), m_scopes, m_errorReporter);
 		for (Source const* source: m_sourceOrder)
 			if (!resolver.registerDeclarations(*source->ast)) {
-				t_stack.pop();
 				return false;
 			}
 
@@ -202,7 +195,6 @@ bool CompilerStack::analyze()
 			sourceUnitsByName[source.first] = source.second.ast.get();
 		for (Source const* source: m_sourceOrder)
 			if (!resolver.performImports(*source->ast, sourceUnitsByName)) {
-				t_stack.pop();
 				return false;
 			}
 
@@ -211,9 +203,9 @@ bool CompilerStack::analyze()
 				if (ContractDefinition* contract = dynamic_cast<ContractDefinition*>(node.get()))
 				{
 					m_globalContext->setCurrentContract(*contract);
-					if (!resolver.updateDeclaration(*m_globalContext->currentThis())) {t_stack.pop(); return false;}
-					if (!resolver.updateDeclaration(*m_globalContext->currentSuper())) {t_stack.pop(); return false;}
-					if (!resolver.resolveNamesAndTypes(*contract)) {t_stack.pop(); return false;}
+					if (!resolver.updateDeclaration(*m_globalContext->currentThis())) return false;
+					if (!resolver.updateDeclaration(*m_globalContext->currentSuper())) return false;
+					if (!resolver.resolveNamesAndTypes(*contract))  return false;
 
 					// Note that we now reference contracts by their fully qualified names, and
 					// thus contracts can only conflict if declared in the same source file.  This
@@ -274,11 +266,9 @@ bool CompilerStack::analyze()
 	if (noErrors)
 	{
 		m_stackState = AnalysisSuccessful;
-                t_stack.pop();
 		return true;
 	}
 	else {
-                t_stack.pop();
 		return false;
 	}
 }
@@ -298,10 +288,9 @@ bool CompilerStack::isRequestedContract(ContractDefinition const& _contract) con
 
 bool CompilerStack::compile()
 {
-	t_stack.push("CompilerStack::compile");
+	TimeNodeWrapper profile(t_stack, "CompilerStack::compile");
         if (m_stackState < AnalysisSuccessful)
 		if (!parseAndAnalyze()) {
-			t_stack.pop();
 			return false;
 		}
 
@@ -313,7 +302,6 @@ bool CompilerStack::compile()
 					compileContract(*contract, compiledContracts);
 	this->link();
 	m_stackState = CompilationSuccessful;
-        t_stack.pop();
 	return true;
 }
 
@@ -708,13 +696,12 @@ void CompilerStack::compileContract(
 	map<ContractDefinition const*, eth::Assembly const*>& _compiledContracts
 )
 {
-	t_stack.push("CompilerStack::compileContract: " + _contract.name());
+	TimeNodeWrapper profile(t_stack, "CompilerStack::compileContract: " + _contract.name());
         if (
 		_compiledContracts.count(&_contract) ||
 		!_contract.annotation().unimplementedFunctions.empty() ||
 		!_contract.constructorIsPublic()
 	) {
-		t_stack.pop();
 		return;
 	}
 	for (auto const* dependency: _contract.annotation().contractDependencies)
@@ -789,7 +776,6 @@ void CompilerStack::compileContract(
 
 		// TODO: Report error / warning
 	}
-        t_stack.pop();
 }
 
 string const CompilerStack::lastContractName() const
@@ -848,7 +834,7 @@ CompilerStack::Source const& CompilerStack::source(string const& _sourceName) co
 
 string CompilerStack::createMetadata(Contract const& _contract) const
 {
-	t_stack.push("CompilerStack::createMetadata");
+	TimeNodeWrapper profile(t_stack, "CompilerStack::createMetadata");
         Json::Value meta;
 	meta["version"] = 1;
 	meta["language"] = "Solidity";
@@ -899,7 +885,6 @@ string CompilerStack::createMetadata(Contract const& _contract) const
 	meta["output"]["abi"] = contractABI(_contract);
 	meta["output"]["userdoc"] = natspecUser(_contract);
 	meta["output"]["devdoc"] = natspecDev(_contract);
-        t_stack.pop();
 	return jsonCompactPrint(meta);
 }
 

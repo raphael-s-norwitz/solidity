@@ -1059,17 +1059,15 @@ void CommandLineInterface::handleAst(string const& _argStr)
 
 bool CommandLineInterface::actOnInput()
 {
-	t_stack.push("CommandLineInterface::actOnInput");
+	TimeNodeWrapper profile(t_stack, "CommandLineInterface::actOnInput");
         if (m_args.count(g_argStandardJSON) || m_onlyAssemble) {
 		// Already done in "processInput" phase.
-		t_stack.pop();
 		return true;
 	}
 	else if (m_onlyLink)
 		writeLinkedFiles();
 	else
 		outputCompilationResults();
-        t_stack.pop();
 	return !m_error;
 }
 
