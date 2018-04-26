@@ -43,7 +43,7 @@ void Compiler::compileContract(
 	// creation time.
 	ContractCompiler creationCompiler(&runtimeCompiler, m_context, m_optimize);
 	m_runtimeSub = creationCompiler.compileConstructor(_contract, _contracts);
-        TimeNodeWrapper (t_stack, "CompilerContext::optimse");
+        TimeNodeWrapper profileOptimize(t_stack, "CompilerContext::optimse");
 	m_context.optimise(m_optimize, m_optimizeRuns);
 }
 
