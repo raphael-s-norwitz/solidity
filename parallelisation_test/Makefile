@@ -2,7 +2,7 @@ CXX = g++
 
 INCLUDES =
 
-CXXFLAGS = -std=c++17 $(INCLUDES)
+CXXFLAGS = -std=c++17 $(INCLUDES) -O2
 
 test: select_contracts_2.o
 	$(CXX) $(CXXFLAGS) select_contracts_2.o -lstdc++fs -lpthread -o test 
