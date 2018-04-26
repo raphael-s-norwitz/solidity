@@ -22,7 +22,7 @@ using namespace std;
 int f(string compiler, string output, string flags, string path, string remains) 
 {
   string cmd = compiler + output + flags + path + remains;
-  system(cmd.c_str());
+  int tmp = system(cmd.c_str());
   return 0;
 }
 
