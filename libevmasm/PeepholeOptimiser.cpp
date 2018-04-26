@@ -306,9 +306,11 @@ bool PeepholeOptimiser::optimise()
 {
 	t_stack.push("PeepholeOptimiser::optimise");
         OptimiserState state {m_items, 0, std::back_inserter(m_optimisedItems)};
-	while (state.i < m_items.size())
+	t_stack.push("while loop Apply Methods");
+        while (state.i < m_items.size())
 		applyMethods(state, PushPop(), OpPop(), DoublePush(), DoubleSwap(), CommutativeSwap(), SwapComparison(), JumpToNext(), UnreachableCode(), TagConjunctions(), Identity());
-	if (m_optimisedItems.size() < m_items.size() || (
+	t_stack.pop();
+        if (m_optimisedItems.size() < m_items.size() || (
 		m_optimisedItems.size() == m_items.size() && (
 			eth::bytesRequired(m_optimisedItems, 3) < eth::bytesRequired(m_items, 3) ||
 			numberOfPops(m_optimisedItems) > numberOfPops(m_items)
